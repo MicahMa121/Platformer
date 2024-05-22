@@ -6,7 +6,7 @@ namespace Platformer
     public class Tile
     {
         public Texture2D Texture { get; set; }
-        public Vector2 Position { get; protected set; }
+        public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; } = Vector2.Zero;
         public Color Color { get; set; } = Color.White;
         public Rectangle Rectangle { get; set; }

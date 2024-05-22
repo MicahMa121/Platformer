@@ -13,25 +13,28 @@ namespace Platformer
         {
             Time = (float)gt.ElapsedGameTime.TotalSeconds;
         }
-        
-        public static List<Texture2D> SpriteSheet(Texture2D spritesheet,int w, int h)
+
+        public static List<List<Texture2D>> SpriteSheet(Texture2D spritesheet, int w, int h)
         {
-            List<Texture2D> textures = new List<Texture2D>();
+            List<List<Texture2D>> textures = new List<List<Texture2D>>();
             for (int j = 0; j < h; j++)
             {
+                List<Texture2D> List = new List<Texture2D>();
                 for (int i = 0; i < w; i++)
                 {
                     int width = spritesheet.Width / w, height = spritesheet.Height / h;
                     Rectangle sourceRect = new Rectangle(i * width, j * height, width, height);
-                    Texture2D cropTexture = new Texture2D(Device, width, height);
+                    Texture2D cropTexture = new Texture2D(Globals.Device, width, height);
                     Color[] data = new Color[width * height];
                     spritesheet.GetData(0, sourceRect, data, 0, data.Length);
                     cropTexture.SetData(data);
-                    if (textures.Count < h*w)
+
+                    if (List.Count < w)
                     {
-                        textures.Add(cropTexture);
+                        List.Add(cropTexture);
                     }
                 }
+                textures.Add(List);
             }
             return textures;
         }

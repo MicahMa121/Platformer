@@ -1,5 +1,7 @@
 ﻿
 
+using Microsoft.Xna.Framework.Graphics;
+
 namespace Platformer
 {
     public class Map
@@ -7,13 +9,13 @@ namespace Platformer
         public int[,] Map2D =
         {
             { 0, 0, 1, 1,1 , 1, 1, 1,1,1},
-            { 1, 1, 1, 1,1 , 1, 1, 1,1,1},
-            { 1, 1, 0, 0,1 , 1, 1, 1,1,1},
-            { 1, 1, 0, 0,0 , 1, 1, 1,1,1},
+            { 1, 0, 1, 1,1 , 0, 1, 1,1,1},
+            { 1, 0, 0, 0,1 , 0, 1, 1,1,1},
+            { 1, 0, 0, 0,0 , 0, 0, 0,0,0},
             { 1, 1, 1, 0,0 , 1, 1, 1,1,1},
             { 1, 1, 1, 1,0 , 0, 1, 1,1,1},
-            { 1, 1, 1, 1,1 , 1, 1, 1,1,1},
-            { 1, 1, 1, 1,1 , 1, 1, 1,1,1},
+            { 1, 1, 1, 1,1 , 0, 1, 1,1,1},
+            { 1, 1, 1, 1,1 , 0, 1, 1,1,1},
             { 1, 1, 1, 1,1 , 1, 1, 1,1,1},
             { 1, 1, 1, 1,1 , 1, 1, 1,1,1},
         };
@@ -45,6 +47,14 @@ namespace Platformer
                     }
 
                 }
+            }
+        }
+        public void Update(Vector2 displacement)
+        {
+            foreach (var tile in Tiles)
+            {
+                tile.Position += displacement;
+                tile.Rectangle =  new((int)tile.Position.X, (int)tile.Position.Y, tile.Rectangle.Width, tile.Rectangle.Height);
             }
         }
         public void Draw()
