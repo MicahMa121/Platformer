@@ -182,7 +182,7 @@ namespace Platformer
                     newHitbox = Hitbox(new(newPos.X, Position.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
-                        newPos -= new Vector2((int)_velocity.X,0);
+                        newPos.X = Position.X;
                     }
                 }
                 newHitbox = Hitbox(new(Position.X, newPos.Y));
@@ -213,12 +213,12 @@ namespace Platformer
             }
             if (newPos.X >= 640 - 160 - 57)//right
             {
-                MapDisplacement += new Vector2(640 - 160 - 63 - newPos.X,0);
+                MapDisplacement += new Vector2(640 - 160 - 57 - newPos.X,0);
                 newPos.X = 640 - 160 - 57;
             }
             else if (newPos.X <= 160-23)//left
             {
-                MapDisplacement += new Vector2(160 - 17 - newPos.X,0);
+                MapDisplacement += new Vector2(160 - 23 - newPos.X,0);
                 newPos.X = 160-23;
             }
             Position = newPos;
