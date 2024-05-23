@@ -73,7 +73,7 @@ namespace Platformer
             }
             else if (screen == Screen.game)
             {
-                player.Update(map, gameTime);
+                player.Update(map);
             }
 
             base.Update(gameTime);

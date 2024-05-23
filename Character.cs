@@ -83,10 +83,10 @@ namespace Platformer
             return textures;
         }
         private int _count = 0;
-        public void Update(Map map, GameTime gameTime)
+        public void Update(Map map)
         {
             //Textures
-            _time += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            _time += Globals.Time;
 
             if (_time >= _animationSpeed)
             {
