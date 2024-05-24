@@ -29,6 +29,7 @@ namespace Platformer
         public Enemy(Texture2D spritesheet, Vector2 position)
         {
             Position = position;
+            _texturePosition = new((int)Position.X - 50, (int)Position.Y - 10);
             Rectangle = new((int)Position.X, (int)Position.Y, spritesheet.Width / 6, spritesheet.Height / 6);
             Textures = SpriteSheet(spritesheet, 5, 5);
             States = EnemyStates.Idle;
@@ -74,6 +75,16 @@ namespace Platformer
         private int _count = 0;
         public void Update(Vector2 displacement, List<Tile> tiles)
         {
+            int offset;
+            if (RightDirection)
+            {
+                offset = 20;
+            }
+            else
+            {
+                offset = -20;
+            }
+            _texturePosition = new((int)Position.X - 25-offset, (int)Position.Y-7);
             //Textures
             _time += Globals.Time;
 
@@ -102,32 +113,16 @@ namespace Platformer
                     newHitbox = Hitbox(new(newPos.X, Position.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
-                        if (!RightDirection)
+                        newPos.X = Position.X;
+                        _velocity.X = -_velocity.X;
+                        for (int i = 0; i < Textures.Count; i++)
                         {
-                            newPos.X = Position.X;
-                            _velocity.X = -_velocity.X;
-                            for (int i = 0; i < Textures.Count; i++)
+                            for (int j = 0; j < Textures[i].Count; j++)
                             {
-                                for (int j = 0; j < Textures[i].Count; j++)
-                                {
-                                    Textures[i][j] = FlipTexture(Textures[i][j]);
-                                }
+                                Textures[i][j] = FlipTexture(Textures[i][j]);
                             }
-                            RightDirection = true;
                         }
-                        else
-                        {
-                            newPos.X = Position.X;
-                            _velocity.X = -_velocity.X;
-                            for (int i = 0; i < Textures.Count; i++)
-                            {
-                                for (int j = 0; j < Textures[i].Count; j++)
-                                {
-                                    Textures[i][j] = FlipTexture(Textures[i][j]);
-                                }
-                            }
-                            RightDirection = false ;
-                        }
+                        RightDirection = !RightDirection;
                     }
                 }
                 newHitbox = Hitbox(new(Position.X, newPos.Y));
@@ -135,8 +130,7 @@ namespace Platformer
                 {
                     if (_velocity.Y >= 0)
                     {
-                        newPos.Y = collider.Rectangle.Top - 70;
-                        _grounded = true;
+                        newPos.Y = collider.Rectangle.Top - 60;
                         _velocity.Y = 0;
                     }
                     else if (_velocity.Y < 0)
@@ -151,25 +145,16 @@ namespace Platformer
         public int Gravity { get; set; } = 1;
         public int Speed { get; set; } = 2;
         private Vector2 _velocity;
-        private bool _grounded = true;
+        private Vector2 _texturePosition;
         public Rectangle Hitbox(Vector2 pos)
         {
-            int offset;
-            if (RightDirection)
-            {
-                offset = 15;
-            }
-            else
-            {
-                offset = -15;
-            }
-            return new((int)pos.X +25 + offset, (int)pos.Y +10, 30, 60);
+            return new((int)pos.X, (int)pos.Y , 30, 60);
         }
 
         public void Draw()
         {
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
-            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
+            Globals.SpriteBatch.Draw(Texture, _texturePosition, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
         }
         private Texture2D FlipTexture(Texture2D texture)
         {

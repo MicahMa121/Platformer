@@ -30,7 +30,7 @@ namespace Platformer
             Climb,
             Attack1,
             Attack2,
-            Attack3
+            Attack3,
         }
         public CharacterStates States { get; set; }
 
@@ -83,6 +83,7 @@ namespace Platformer
             return textures;
         }
         private int _count = 0;
+        public bool Attacking { get; set; } = false;
         public void Update(Map map)
         {
             //Textures
@@ -96,6 +97,15 @@ namespace Platformer
                     {
                         Jumped = false;
                     }
+                    if (States == CharacterStates.Attack1)
+                    {
+                        Attacking = false;
+                    }
+                    if (States == CharacterStates.Attack2)
+                    {
+                        Jumped = false;
+                        Attacking = false;
+                    }
                     _count = 0;
                 }
                 Texture = Textures[(int)States][_count];
@@ -105,14 +115,14 @@ namespace Platformer
             }
 
             _velocity.X = 0;
-            if (!Jumped)
+            if (!Jumped && !Attacking)
                 Idle = true;
             _grounded = false;
             //States
             if (InputManager.IsKeyPressed(Keys.D))
             {
                 _velocity.X = Speed;
-                if (!Jumped)
+                if (!Jumped&&!Attacking)
                     States = CharacterStates.Run;
                 if (!RightDirection)
                 {
@@ -130,7 +140,7 @@ namespace Platformer
             else if (InputManager.IsKeyPressed(Keys.A))
             {
                 _velocity.X = -Speed;
-                if (!Jumped)
+                if (!Jumped&&!Attacking)
                     States = CharacterStates.Run;
                 if (RightDirection)
                 {
@@ -145,18 +155,6 @@ namespace Platformer
                 }
                 Idle = false;
             }
-            if (InputManager.IsKeyClicked(Keys.LeftShift))
-            {
-                if (States == CharacterStates.Walk)
-                {
-                    States = CharacterStates.Idle;
-                }
-                else
-                {
-                    States = CharacterStates.Walk ;
-                    Idle = false;
-                }
-            }
             if (InputManager.IsKeyClicked(Keys.W))
             {
                 _velocity.Y = -Gravity*15;
@@ -164,6 +162,26 @@ namespace Platformer
                 States = CharacterStates.Jump;
                 Idle = false;
                 Jumped = true;
+                Attacking = false;
+            }
+            if (InputManager.IsKeyClicked(Keys.Space))
+            {
+                if (!Attacking)
+                    _count = 0;
+
+                if (Jumped)
+                {
+                    States = CharacterStates.Attack2;
+                    Idle = false;
+                    Attacking = true;
+                }
+                else
+                {
+                    States = CharacterStates.Attack1;
+                    Idle = false;
+                    Attacking = true;
+                }
+
             }
             if (!_grounded)
             {
@@ -190,13 +208,13 @@ namespace Platformer
                 {
                     if (_velocity.Y >= 0)
                     {
-                        newPos.Y = collider.Rectangle.Top - 64;
+                        newPos.Y = collider.Rectangle.Top - 80;
                         _grounded = true;
                         _velocity.Y = 0;
                     }
                     else if (_velocity.Y < 0)
                     {
-                        newPos.Y = collider.Rectangle.Bottom;
+                        newPos.Y = collider.Rectangle.Bottom-20;
                     }
                 }
             }
@@ -226,12 +244,12 @@ namespace Platformer
         }
         public Vector2 MapDisplacement { get; set; }
         public int Gravity { get; set; } = 1;
-        public int Speed { get; set; } = 4;
+        public int Speed { get; set; } = 5;
         private Vector2 _velocity;
         private bool _grounded = true;
         public Rectangle Hitbox(Vector2 pos)
         {
-            return new((int)pos.X + 27, (int)pos.Y + 5, 26, 57);
+            return new((int)pos.X + 30, (int)pos.Y +22, 20, 57);
         }
 
         public void Draw()

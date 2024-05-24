@@ -1,6 +1,7 @@
 ﻿
 
 using Microsoft.Xna.Framework.Graphics;
+using System.IO;
 
 namespace Platformer
 {
@@ -16,10 +17,29 @@ namespace Platformer
             { 1, 1, 1, 1,0 , 0, 1, 1,1,1, 1},
             { 1, 1, 1, 1,1 , 0, 1, 1,1,1, 1},
             { 1, 0 , 0, 0, 0, 0, 1, 1,1,1, 1},
-            { 1, 1, 1, 1,1 , 1, 1, 1,1,1, 1},
-            { 1, 1, 1, 1,1 , 1, 1, 1,1,1, 1},
-            { 1, 1, 1, 1,1 , 1, 1, 1,1,1, 1},
+            { 1, 1, 1, 0,1 , 1, 1, 1,1,1, 1},
+            { 1, 1, 1, 0,1 , 1, 1, 1,1,1, 1},
+            { 1, 1, 1, 0,1 , 1, 1, 1,1,1, 1},
+            { 1, 1, 1, 0,1 , 0, 1, 1,1,1, 1},
+            { 1, 1, 1, 0,0 , 0, 1, 1,1,1, 1},
         };
+        /*()
+        {
+            int[,] level = new int[10,10];
+            if (!File.Exists(@"level" + 1 + ".txt"))
+            {
+                StreamWriter writer = File.CreateText(@"level" + 1 + ".txt");
+
+                writer.Close();
+
+            }
+            StreamReader reader = new StreamReader(@"level" + 1 + ".txt");
+            string line;
+            line = reader.ReadLine();
+
+            return level;
+        }*/
+
         public List<Tile> Tiles = new List<Tile>();
         private Texture2D _soilTexture = Globals.Content.Load<Texture2D>("Soil");
         private Texture2D _soil2Texture = Globals.Content.Load<Texture2D>("SoilClean");
@@ -33,9 +53,9 @@ namespace Platformer
             {
                 for (int x = 0; x < Map2D.GetLength(0); x++)
                 {
-                    if (Map2D[y,x] == 1)
+                    if (Map2D[x,y] == 1)
                     {
-                        if (y - 1 >= 0 && Map2D[y-1,x] == 0)
+                        if (y - 1 >= 0 && Map2D[x,y-1] == 0)
                         {
                             Tile tile = new(_soilTexture,MaptoScreen(x,y));
                             Tiles.Add(tile);
@@ -47,7 +67,7 @@ namespace Platformer
                         }
 
                     }
-                    else if (Map2D[y, x] == 2)
+                    else if (Map2D[x, y] == 2)
                     {
                         Enemy enemy = new(Globals.Content.Load<Texture2D>("Enemy"), MaptoScreen(x, y));
                         Enemies.Add(enemy);

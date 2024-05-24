@@ -64,8 +64,8 @@ namespace Platformer
             {
                 if (InputManager.IsKeyClicked(Keys.W))
                 {
-                    player = new(Globals.Content.Load<Texture2D>("hunterspritesheet"),
-                             Globals.Content.Load<Texture2D>("hunterspritesheet2"),
+                    player = new(Globals.Content.Load<Texture2D>("character"),
+                             Globals.Content.Load<Texture2D>("character2 (1)"),
                              new(_graphics.PreferredBackBufferWidth/2-40,_graphics.PreferredBackBufferHeight/2-40));
                     map = new();
                     screen = Screen.game;
