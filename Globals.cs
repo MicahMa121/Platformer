@@ -9,11 +9,15 @@ namespace Platformer
         public static SpriteBatch SpriteBatch { get; set; }
         public static Point WindowSize { get; set; }
         public static GraphicsDevice Device { get; set; }
+        public static SpriteFont Font { get; set; } 
         public static void Update(GameTime gt)
         {
             Time = (float)gt.ElapsedGameTime.TotalSeconds;
         }
-
+        public static Rectangle Rectangle(int width, int height, Vector2 origin)
+        {
+            return new Rectangle((int)origin.X - width / 2, (int)origin.Y - height / 2, width, height);
+        }
         public static List<List<Texture2D>> SpriteSheet(Texture2D spritesheet, int w, int h)
         {
             List<List<Texture2D>> textures = new List<List<Texture2D>>();

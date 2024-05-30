@@ -84,6 +84,7 @@ namespace Platformer
         }
         private int _count = 0;
         public bool Attacking { get; set; } = false;
+        public bool CanMove { get; set; } = true;
         public void Update(Map map)
         {
             //Textures
@@ -119,128 +120,158 @@ namespace Platformer
                 Idle = true;
             _grounded = false;
             //States
-            if (InputManager.IsKeyPressed(Keys.D))
+            if (CanMove)
             {
-                _velocity.X = Speed;
-                if (!Jumped&&!Attacking)
-                    States = CharacterStates.Run;
-                if (!RightDirection)
+                if (InputManager.IsKeyPressed(Keys.D))
                 {
-                    for (int i = 0; i < Textures.Count; i++)
+                    _velocity.X = Speed;
+                    if (!Jumped && !Attacking)
+                        States = CharacterStates.Run;
+                    if (!RightDirection)
                     {
-                        for (int j = 0; j < Textures[i].Count; j++)
+                        for (int i = 0; i < Textures.Count; i++)
                         {
-                            Textures[i][j] = FlipTexture(Textures[i][j]);
+                            for (int j = 0; j < Textures[i].Count; j++)
+                            {
+                                Textures[i][j] = FlipTexture(Textures[i][j]);
+                            }
+                        }
+                        RightDirection = true;
+                    }
+                    Idle = false;
+                }
+                else if (InputManager.IsKeyPressed(Keys.A))
+                {
+                    _velocity.X = -Speed;
+                    if (!Jumped && !Attacking)
+                        States = CharacterStates.Run;
+                    if (RightDirection)
+                    {
+                        for (int i = 0; i < Textures.Count; i++)
+                        {
+                            for (int j = 0; j < Textures[i].Count; j++)
+                            {
+                                Textures[i][j] = FlipTexture(Textures[i][j]);
+                            }
+                        }
+                        RightDirection = false;
+                    }
+                    Idle = false;
+                }
+                if (InputManager.IsKeyClicked(Keys.W))
+                {
+                    _velocity.Y = -Gravity * 15;
+                    _grounded = false;
+                    States = CharacterStates.Jump;
+                    Idle = false;
+                    Jumped = true;
+                    Attacking = false;
+                }
+                if (InputManager.IsKeyClicked(Keys.Space))
+                {
+                    if (!Attacking)
+                        _count = 0;
+
+                    if (Jumped)
+                    {
+                        States = CharacterStates.Attack2;
+                        Idle = false;
+                        Attacking = true;
+                    }
+                    else
+                    {
+                        States = CharacterStates.Attack1;
+                        Idle = false;
+                        Attacking = true;
+                    }
+
+                }
+                if (!_grounded)
+                {
+                    _velocity.Y += Gravity;
+                }
+                if (Idle)
+                {
+                    States = CharacterStates.Idle;
+                }
+                Vector2 newPos = Position + _velocity;
+                Rectangle newHitbox;
+                foreach (Tile collider in map.Tiles)
+                {
+                    if (!collider.Visible) continue;
+                    if (newPos.X != Position.X)
+                    {
+                        newHitbox = Hitbox(new(newPos.X, Position.Y));
+                        if (newHitbox.Intersects(collider.Rectangle))
+                        {
+                            newPos.X = Position.X;
                         }
                     }
-                    RightDirection = true;
-                }
-                Idle = false;
-            }
-            else if (InputManager.IsKeyPressed(Keys.A))
-            {
-                _velocity.X = -Speed;
-                if (!Jumped&&!Attacking)
-                    States = CharacterStates.Run;
-                if (RightDirection)
-                {
-                    for (int i = 0; i < Textures.Count; i++)
-                    {
-                        for (int j = 0; j < Textures[i].Count; j++)
-                        {
-                            Textures[i][j] = FlipTexture(Textures[i][j]);
-                        }
-                    }
-                    RightDirection = false;
-                }
-                Idle = false;
-            }
-            if (InputManager.IsKeyClicked(Keys.W))
-            {
-                _velocity.Y = -Gravity*15;
-                _grounded = false;
-                States = CharacterStates.Jump;
-                Idle = false;
-                Jumped = true;
-                Attacking = false;
-            }
-            if (InputManager.IsKeyClicked(Keys.Space))
-            {
-                if (!Attacking)
-                    _count = 0;
-
-                if (Jumped)
-                {
-                    States = CharacterStates.Attack2;
-                    Idle = false;
-                    Attacking = true;
-                }
-                else
-                {
-                    States = CharacterStates.Attack1;
-                    Idle = false;
-                    Attacking = true;
-                }
-
-            }
-            if (!_grounded)
-            {
-                _velocity.Y += Gravity;
-            }
-            if (Idle)
-            {
-                States = CharacterStates.Idle; 
-            }
-            Vector2 newPos = Position + _velocity;
-            Rectangle newHitbox;
-            foreach(Tile collider in map.Tiles)
-            {
-                if (newPos.X != Position.X)
-                {
-                    newHitbox = Hitbox(new(newPos.X, Position.Y));
+                    newHitbox = Hitbox(new(Position.X, newPos.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
-                        newPos.X = Position.X;
+                        if (_velocity.Y >= 0)
+                        {
+                            newPos.Y = collider.Rectangle.Top - 80;
+                            _grounded = true;
+                            _velocity.Y = 0;
+                        }
+                        else if (_velocity.Y < 0)
+                        {
+                            newPos.Y = collider.Rectangle.Bottom - 20;
+                        }
                     }
                 }
-                newHitbox = Hitbox(new(Position.X, newPos.Y));
-                if (newHitbox.Intersects(collider.Rectangle))
+                foreach (Rectangle collider in map.Borders)
                 {
-                    if (_velocity.Y >= 0)
+                    if (newPos.X != Position.X)
                     {
-                        newPos.Y = collider.Rectangle.Top - 80;
-                        _grounded = true;
-                        _velocity.Y = 0;
+                        newHitbox = Hitbox(new(newPos.X, Position.Y));
+                        if (newHitbox.Intersects(collider))
+                        {
+                            newPos.X = Position.X;
+                        }
                     }
-                    else if (_velocity.Y < 0)
+                    newHitbox = Hitbox(new(Position.X, newPos.Y));
+                    if (newHitbox.Intersects(collider))
                     {
-                        newPos.Y = collider.Rectangle.Bottom-20;
+                        if (_velocity.Y >= 0)
+                        {
+                            newPos.Y = collider.Top - 80;
+                            _grounded = true;
+                            _velocity.Y = 0;
+                        }
+                        else if (_velocity.Y < 0)
+                        {
+                            newPos.Y = collider.Bottom - 20;
+                        }
                     }
                 }
+                MapDisplacement = new(0, 0);
+                if (newPos.Y >= 640 - 160 - 63)//down
+                {
+                    MapDisplacement += new Vector2(0, 640 - 160 - 63 - newPos.Y);
+                    newPos.Y = 640 - 160 - 63;
+                }
+                else if (newPos.Y <= 160 - 17)//up
+                {
+                    MapDisplacement += new Vector2(0, 160 - 17 - newPos.Y);
+                    newPos.Y = 160 - 17;
+                }
+                if (newPos.X >= 640 - 160 - 57)//right
+                {
+                    MapDisplacement += new Vector2(640 - 160 - 57 - newPos.X, 0);
+                    newPos.X = 640 - 160 - 57;
+                }
+                else if (newPos.X <= 160 - 23)//left
+                {
+                    MapDisplacement += new Vector2(160 - 23 - newPos.X, 0);
+                    newPos.X = 160 - 23;
+                }
+                Position = newPos;
+                map.Update(MapDisplacement);
             }
-            MapDisplacement = new(0,0);
-            if (newPos.Y >= 640-160 - 63 )//down
-            {
-                MapDisplacement += new Vector2(0, 640 - 160 - 63-newPos.Y);
-                newPos.Y = 640-160- 63;
-            }
-            else if (newPos.Y <= 160 - 17)//up
-            {
-                MapDisplacement += new Vector2(0, 160-17 - newPos.Y);
-                newPos.Y = 160 - 17;
-            }
-            if (newPos.X >= 640 - 160 - 57)//right
-            {
-                MapDisplacement += new Vector2(640 - 160 - 57 - newPos.X,0);
-                newPos.X = 640 - 160 - 57;
-            }
-            else if (newPos.X <= 160-23)//left
-            {
-                MapDisplacement += new Vector2(160 - 23 - newPos.X,0);
-                newPos.X = 160-23;
-            }
-            Position = newPos;
-            map.Update(MapDisplacement);
+
         }
         public Vector2 MapDisplacement { get; set; }
         public int Gravity { get; set; } = 1;
@@ -251,9 +282,23 @@ namespace Platformer
         {
             return new((int)pos.X + 30, (int)pos.Y +22, 20, 57);
         }
-
+        public Rectangle AttackRange()
+        {
+            int x;
+            if (RightDirection)
+            {
+                x = Hitbox(Position).X + 20;
+            }
+            else
+            {
+                x = Hitbox(Position).X - 30;
+            }
+            return new(x, Hitbox(Position).Y, 30, 57);
+        }
         public void Draw()
         {
+            if (Attacking)
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
         }

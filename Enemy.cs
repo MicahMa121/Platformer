@@ -8,7 +8,7 @@ namespace Platformer
     {
         private float _time;
         private float _animationSpeed;
-
+        private Random _gen = new Random();
         public Texture2D Texture { get; set; }
         public Vector2 Position { get; protected set; }
         public Vector2 Origin { get; protected set; }
@@ -73,16 +73,18 @@ namespace Platformer
             return textures;
         }
         private int _count = 0;
-        public void Update(Vector2 displacement, List<Tile> tiles)
+        public void Update(Vector2 displacement, Tile[,] tiles)
         {
             int offset;
             if (RightDirection)
             {
                 offset = 20;
+                _velocity.X = -Speed;
             }
             else
             {
                 offset = -20;
+                _velocity.X = Speed;
             }
             _texturePosition = new((int)Position.X - 25-offset, (int)Position.Y-7);
             //Textures
@@ -99,8 +101,12 @@ namespace Platformer
                 _time = 0;
             }
             //displacement
+            if (_gen.Next(0,100)== 0)
+            {
+                _velocity.Y = -Speed * 15/2;
+            }
             Position += displacement;
-            Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width,Rectangle.Height);
+            Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
             //movement
             _velocity.Y += Gravity;
             //collision
@@ -108,13 +114,13 @@ namespace Platformer
             Rectangle newHitbox;
             foreach (Tile collider in tiles)
             {
+                if (!collider.Visible) continue;
                 if (newPos.X != Position.X)
                 {
                     newHitbox = Hitbox(new(newPos.X, Position.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
                         newPos.X = Position.X;
-                        _velocity.X = -_velocity.X;
                         for (int i = 0; i < Textures.Count; i++)
                         {
                             for (int j = 0; j < Textures[i].Count; j++)
@@ -150,9 +156,22 @@ namespace Platformer
         {
             return new((int)pos.X, (int)pos.Y , 30, 60);
         }
-
+        public Rectangle AttackRange()
+        {
+            int x;
+            if (!RightDirection)
+            {
+                x = Hitbox(Position).X + 25;
+            }
+            else
+            {
+                x = Hitbox(Position).X - 30;
+            }
+            return new(x, Hitbox(Position).Y, 30, 60);
+        }
         public void Draw()
         {
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
             Globals.SpriteBatch.Draw(Texture, _texturePosition, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
         }

@@ -6,6 +6,7 @@ namespace Platformer
     {
         private static MouseState _prevMouseState;
         public static bool MouseClicked { get; private set; }
+        public static bool MouseDown { get; private set; }
         public static bool MouseRightClicked { get; private set; }
         public static Rectangle MouseRectangle { get; private set; }
 
@@ -26,6 +27,7 @@ namespace Platformer
             MouseClicked = mouseState.LeftButton == ButtonState.Pressed && _prevMouseState.LeftButton == ButtonState.Released;
             MouseRightClicked = mouseState.RightButton == ButtonState.Pressed && _prevMouseState.RightButton == ButtonState.Released;
             MouseRectangle = new(mouseState.Position.X, mouseState.Position.Y, 1, 1);
+            MouseDown = mouseState.LeftButton == ButtonState.Pressed;
 
             _prevMouseState = mouseState;
 

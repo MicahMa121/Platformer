@@ -8,6 +8,7 @@ namespace Platformer
     enum Screen
     {
         intro,
+        load,
         game,
         exit
     }
@@ -20,6 +21,9 @@ namespace Platformer
         Screen screen;
 
         Map map;
+        string loadTxt = "Click to Start";
+        Button button;
+        UserInterface userInterface;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -40,7 +44,8 @@ namespace Platformer
             screen = Screen.intro;
 
             base.Initialize();
-            
+            button = new(new(Globals.WindowSize.X/2, Globals.WindowSize.Y/2), loadTxt);
+
         }
 
         protected override void LoadContent()
@@ -49,9 +54,19 @@ namespace Platformer
 
             Globals.SpriteBatch = _spriteBatch;
             // TODO: use this.Content to load your game content here
-
+            Globals.Font = Content.Load<SpriteFont>("spritefont");
         }
 
+        protected void GameRun()
+        {
+            player = new(Globals.Content.Load<Texture2D>("character"),
+         Globals.Content.Load<Texture2D>("character2 (1)"),
+         new(0,0));
+            userInterface = new UserInterface();
+            map = new();
+            map.UserInterface = userInterface;
+            screen = Screen.game;
+        }
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -60,20 +75,34 @@ namespace Platformer
             Globals.Update(gameTime);
             // TODO: Add your update logic here
             InputManager.Update();
+
             if (screen == Screen.intro)
             {
-                if (InputManager.IsKeyClicked(Keys.W))
+                button.Update();
+                if (button.State == Button.ButtonStates.Pressed)
                 {
-                    player = new(Globals.Content.Load<Texture2D>("character"),
-                             Globals.Content.Load<Texture2D>("character2 (1)"),
-                             new(_graphics.PreferredBackBufferWidth/2-40,_graphics.PreferredBackBufferHeight/2-40));
-                    map = new();
-                    screen = Screen.game;
+                    button.Text = "Loading...";
+                    screen = Screen.load;
                 }
+
+            }
+            else if (screen == Screen.load)
+            {
+                GameRun();
             }
             else if (screen == Screen.game)
             {
+
                 player.Update(map);
+                userInterface.Update();
+                if (map.UserInterface.open)
+                {
+                    player.CanMove = false;
+                }
+                else if (!map.UserInterface.open)
+                {
+                    player.CanMove = true;
+                }
             }
 
             base.Update(gameTime);
@@ -89,13 +118,20 @@ namespace Platformer
             _spriteBatch.Begin();
             if (screen == Screen.intro)
             {
-
+                button.Draw();
+            }
+            else if (screen == Screen.load)
+            {
+                button.Draw();
             }
             else if (screen == Screen.game)
             {
+
                 map.Draw();
                 player.Draw();
+                userInterface.Draw();
             }
+
             _spriteBatch.End();
 
             base.Draw(gameTime);
