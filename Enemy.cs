@@ -1,5 +1,4 @@
 ﻿
-
 using static Platformer.Character;
 
 namespace Platformer
@@ -26,18 +25,21 @@ namespace Platformer
         }
         public EnemyStates States { get; set; }
         public bool RightDirection { get; set; } = true;
+        public float Health { get; set; }
         public Enemy(Texture2D spritesheet, Vector2 position)
         {
             Position = position;
-            _texturePosition = new((int)Position.X - 50, (int)Position.Y - 10);
             Rectangle = new((int)Position.X, (int)Position.Y, spritesheet.Width / 6, spritesheet.Height / 6);
             Textures = SpriteSheet(spritesheet, 5, 5);
-            States = EnemyStates.Idle;
+            States = EnemyStates.Walk;
             Texture = Textures[(int)States][0];
             Origin = Vector2.Zero;
             _time = 0;
             _animationSpeed = 0.1f;
             _velocity.X = -Speed;
+            Health = 80f;
+            for (int i = 0; i < 4; i++) 
+                Textures[(int)EnemyStates.Hurt].Insert(0, Textures[(int)EnemyStates.Hurt][1]);
         }
         public static List<List<Texture2D>> SpriteSheet(Texture2D spritesheet, int w, int h)
         {
@@ -72,39 +74,45 @@ namespace Platformer
             }
             return textures;
         }
-        private int _count = 0;
-        public void Update(Vector2 displacement, Tile[,] tiles)
+        public int _count = 0;
+        public bool IsAttacking { get; set; } = false;
+        public void Update(Vector2 displacement, Tile[,] tiles,Character player)
         {
-            int offset;
             if (RightDirection)
             {
-                offset = 20;
                 _velocity.X = -Speed;
             }
-            else
-            {
-                offset = -20;
-                _velocity.X = Speed;
-            }
-            _texturePosition = new((int)Position.X - 25-offset, (int)Position.Y-7);
+            else { _velocity.X = Speed; }
             //Textures
             _time += Globals.Time;
+            if (!IsAttacking&&!Hurt)
+            {
+                States = EnemyStates.Walk;
+                Speed = 2;
+            }
 
             if (_time >= _animationSpeed)
             {
+                _count++;
                 if (_count >= Textures[(int)States].Count)
                 {
+                    if (States == EnemyStates.Attack)
+                    {
+                        IsAttacking = false;
+                        Hurt = false;
+                    }
+                    if (States == EnemyStates.Hurt)
+                    {
+                        Hurt = false;
+                        IsAttacking = false;
+                    }
                     _count = 0;
                 }
                 Texture = Textures[(int)States][_count];
-                _count++;
                 _time = 0;
+
             }
             //displacement
-            if (_gen.Next(0,100)== 0)
-            {
-                _velocity.Y = -Speed * 15/2;
-            }
             Position += displacement;
             Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
             //movement
@@ -112,6 +120,14 @@ namespace Platformer
             //collision
             Vector2 newPos = Position + _velocity;
             Rectangle newHitbox;
+            if (!IsAttacking && AttackRange().Intersects(player.Hitbox(player.Position)))
+            {
+                IsAttacking = true;
+                States = EnemyStates.Attack;
+                _count = 0;
+                Speed = 0;
+
+            }
             foreach (Tile collider in tiles)
             {
                 if (!collider.Visible) continue;
@@ -136,7 +152,7 @@ namespace Platformer
                 {
                     if (_velocity.Y >= 0)
                     {
-                        newPos.Y = collider.Rectangle.Top - 60;
+                        newPos.Y = collider.Rectangle.Top -68;
                         _velocity.Y = 0;
                     }
                     else if (_velocity.Y < 0)
@@ -151,29 +167,31 @@ namespace Platformer
         public int Gravity { get; set; } = 1;
         public int Speed { get; set; } = 2;
         private Vector2 _velocity;
-        private Vector2 _texturePosition;
+        public bool Hurt { get; set; }
         public Rectangle Hitbox(Vector2 pos)
         {
-            return new((int)pos.X, (int)pos.Y , 30, 60);
+            return new((int)pos.X+5, (int)pos.Y+20, 70, 47);
         }
         public Rectangle AttackRange()
         {
             int x;
-            if (!RightDirection)
+            if (RightDirection)
             {
-                x = Hitbox(Position).X + 25;
+                x = 65;
             }
             else
             {
-                x = Hitbox(Position).X - 30;
+                x = -15;
             }
-            return new(x, Hitbox(Position).Y, 30, 60);
+            return new(Hitbox(Position).Center.X-x, Hitbox(Position).Y, 50, 47);
         }
         public void Draw()
         {
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
-            Globals.SpriteBatch.Draw(Texture, _texturePosition, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
+            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, 80, 10), Color.Red);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10), Color.Green);
         }
         private Texture2D FlipTexture(Texture2D texture)
         {

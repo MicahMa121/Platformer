@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Text;
+using static Platformer.Enemy;
 
 namespace Platformer
 {
@@ -6,7 +8,8 @@ namespace Platformer
     {
         public int[,] Map2D()
         {
-            int[,] level = new int[40,40];
+            int[,] level = new int[100,100];
+            
             if (!File.Exists(@"level" + 1 + ".txt"))
             {
                 StreamWriter writer = File.CreateText(@"level" + 1 + ".txt");
@@ -22,20 +25,20 @@ namespace Platformer
 
             }
             StreamReader reader = new StreamReader(@"level" + 1 + ".txt");
-            
+
             for (int i = 0; i < 40; i++)
             {
                 for (int j = 0; j < 20; j++)
                 {
                     int data = Convert.ToInt32(((char)reader.Read()).ToString());
-                    level[i,j] = data;
+                    level[i, j] = data;
                 }
                 reader.ReadLine();
             }
-
             return level;
         }
 
+        
         public Tile[,] Tiles;
         private Texture2D _soilTexture = Globals.Content.Load<Texture2D>("Soil");
         private Texture2D _soil2Texture = Globals.Content.Load<Texture2D>("SoilClean");
@@ -52,30 +55,32 @@ namespace Platformer
         public (int x, int y) ScreentoMap (Vector2 position)=> ((int)position.X/width,(int)position.Y/width);
         public Map()
         {
+            int[,] map = Map2D();
             AddBorder(160,40*80);
-            Tiles = new Tile[Map2D().GetLength(0), Map2D().GetLength(1)];
-            for (int y = 0; y < Map2D().GetLength(1);y++)
+            Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
+            for (int y = 0; y < map.GetLength(1);y++)
             {
-                for (int x = 0; x < Map2D().GetLength(0); x++)
+                for (int x = 0; x < map.GetLength(0); x++)
                 {
                     Tile tile = new(_soilTexture, MaptoScreen(x, y));
-                    if (Map2D()[x,y] == 1)
+                    if (map[x,y] == 1)
                     {
-                        if (y - 1 >= 0 && Map2D()[x,y-1] == 1)
+                        if (y - 1 >= 0 && map[x,y-1] == 1)
                         {
                             tile.Texture = _soil2Texture;
                         }
                         tile.Visible = true ;
                     }
                     Tiles[x, y] = tile;
-                    if (Map2D()[x, y] == 2)
+                    if (map[x, y] == 2)
                     {
-                        Enemy enemy = new(Globals.Content.Load<Texture2D>("Enemy"), MaptoScreen(x, y));
+                        Enemy enemy = new(Globals.Content.Load<Texture2D>("Dog (2)"), MaptoScreen(x, y));
                         Enemies.Add(enemy);
                     }
                 }
             }
         }
+        public Character Player { get; set; } 
         public List<Rectangle> Borders { get; set; } = new List<Rectangle> ();
         private void AddBorder(int width, int length)
         {
@@ -96,6 +101,11 @@ namespace Platformer
                 if (tile == null) continue;
                 tile.Position += displacement;
                 tile.Rectangle =  new((int)tile.Position.X, (int)tile.Position.Y, tile.Rectangle.Width, tile.Rectangle.Height);
+                
+            }
+            foreach (Treasure treasure in Treasures)
+            {
+                treasure.Update(displacement, Tiles);
 
             }
             for (int i = 0; i < Borders.Count; i++)
@@ -108,11 +118,36 @@ namespace Platformer
                 {
                     enemy.Speed = 0;
                 }
-                else
+                enemy.Update(displacement, Tiles,Player);
+                if (Player.Attacking&&enemy.Hitbox(enemy.Position).Intersects(Player.AttackRange()))
                 {
-                    enemy.Speed = 2;
+                    if (!enemy.Hurt)
+                    {
+                        enemy.Health -= 5;
+                        enemy.Hurt = true;
+                        enemy.States = EnemyStates.Hurt;
+                    }
+
                 }
-                enemy.Update(displacement, Tiles);
+                if (enemy.Hurt != true&&enemy.AttackRange().Intersects(Player.Hitbox(Player.Position)) && !Player.Hurt )
+                {
+                    if (!enemy.IsAttacking)
+                    {
+                        enemy.IsAttacking = true;
+                        enemy.States = EnemyStates.Attack;
+                        enemy._count = 0;
+                        enemy.Speed = 0;
+                    }
+                    else 
+                    {
+                        Player.States = Character.CharacterStates.Hurt;
+                        Player.Hurt = true;
+                        Player.Idle = false;
+                        Player.Attacking = false;
+                        Player.Jumped = false;
+                        Player.Health -= 5;
+                    }
+                }
             }
             if (UserInterface.MouseState == "soil")
             {
@@ -120,7 +155,8 @@ namespace Platformer
                 {
                     for (int i = 0; i < Tiles.GetLength(0); i++)
                     {
-                        if (Clickable() && Tiles[i, j].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                        if (!Tiles[i, j].IsPlayerHere&&
+                            Clickable() && Tiles[i, j].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
                         {
                             bool add = true;
                             foreach (Enemy enemy in Enemies)
@@ -130,9 +166,9 @@ namespace Platformer
                                     add = false;break;
                                 }
                             }
-                            foreach (Rectangle rect in Treasures)
+                            foreach (Treasure treasure in Treasures)
                             {
-                                if (Tiles[i, j].Rectangle.Intersects(rect))
+                                if (Tiles[i, j].Rectangle.Intersects(treasure.Rectangle))
                                 {
                                     add = false; break;
                                 }
@@ -194,8 +230,8 @@ namespace Platformer
                 {
                     DrawItem = true;
                     if (InputManager.MouseClicked&&Add)
-                    {
-                        Enemy enemy = new(Globals.Content.Load<Texture2D>("Enemy"), new(InputManager.MouseRectangle.X-20, InputManager.MouseRectangle.Y-40));
+                    { 
+                        Enemy enemy = new(Globals.Content.Load<Texture2D>("Dog (2)"), new(InputManager.MouseRectangle.X-20, InputManager.MouseRectangle.Y-40));
                         Enemies.Add(enemy);
                     }
                 }
@@ -210,7 +246,7 @@ namespace Platformer
                 bool Add = true;
                 for (int i = 0; i < Treasures.Count; i++)
                 {
-                    if (Clickable() && Treasures[i].Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                    if (Clickable() && Treasures[i].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
                     {
                         Treasures.RemoveAt(i);
                         i--;
@@ -222,8 +258,8 @@ namespace Platformer
                     DrawItem = true;
                     if (InputManager.MouseClicked && Add)
                     {
-                        Rectangle rect = Globals.Rectangle(60, 45, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y));
-                        Treasures.Add(rect);
+                        Treasure treasure = new(Globals.Content.Load<Texture2D>("treasure"), new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y));
+                        Treasures.Add(treasure);
                     }
                 }
                 else
@@ -233,7 +269,7 @@ namespace Platformer
                 }
             }
         }
-        public List<Rectangle> Treasures { get; set; } = new List<Rectangle>();
+        public List<Treasure> Treasures { get; set; } = new List<Treasure>();
         public bool DrawItem { get; set; } = false;
         public void Draw()
         {
@@ -243,7 +279,7 @@ namespace Platformer
                 tile.Draw();
             }
             if (DrawItem&&UserInterface.MouseState == "enemy")
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Enemy1"), Globals.Rectangle(80,80,new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Dog1"), Globals.Rectangle(80,80,new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
                     ,new Color(Color.White, 0.2f));
             if (DrawItem && UserInterface.MouseState == "treasure")
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("treasure"), Globals.Rectangle(60,45, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
@@ -252,10 +288,9 @@ namespace Platformer
             {
                 enemy.Draw();
             }
-            foreach (Rectangle rectangle in Treasures)
+            foreach (Treasure treasure in Treasures)
             {
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("treasure"), rectangle
-                    , Color.White);
+                treasure.Draw();
             }
         }
     }

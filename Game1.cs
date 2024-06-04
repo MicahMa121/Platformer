@@ -63,8 +63,11 @@ namespace Platformer
          Globals.Content.Load<Texture2D>("character2 (1)"),
          new(0,0));
             userInterface = new UserInterface();
+            this.Window.Title = "about to load file";
             map = new();
+            this.Window.Title = "file loaded";
             map.UserInterface = userInterface;
+            map.Player = player;
             screen = Screen.game;
         }
         protected override void Update(GameTime gameTime)

@@ -103,7 +103,7 @@ namespace Platformer
                 Rectangle rect = Rectangle(Menurect.Width - Menurect.Height / 20, Menurect.Height - Menurect.Height / 20, new(Origin.X, 550));
                 Globals.SpriteBatch.Draw(_tex, rect, Color.SandyBrown);
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Soil"), Soil, Color.White);
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Enemy1"), Enemy, Color.White);
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Dog1"), Enemy, Color.White);
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("treasure"), Treasure, Color.White);
             }
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("setting"), Settingrect, Color.White);

@@ -11,6 +11,7 @@ namespace Platformer
         public float Rotation { get; protected set; } = 0f;
         public bool Visible { get; set; } = false;
         public bool Hover { get; set; } = false;
+        public bool IsPlayerHere { get; set; } = false;
         public Tile(Texture2D texture, Vector2 position)
         {
             Position = position;

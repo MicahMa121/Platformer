@@ -33,10 +33,11 @@ namespace Platformer
             Attack3,
         }
         public CharacterStates States { get; set; }
-
+        public bool Hurt { get; set; } = false;
         public bool RightDirection { get; set; } = true;
         public bool Jumped { get; set; } = false;
         public bool Idle { get; set; } = true;
+        public float Health { get; set; } 
         public Character(Texture2D spritesheet,Texture2D spritesheet2, Vector2 position)
         {
             Position = position;
@@ -47,7 +48,10 @@ namespace Platformer
             Texture = Textures[(int)States][0];
             Origin = Vector2.Zero;//new(spritesheet.Width / 12, spritesheet.Height / 12);
             _time = 0;
+            Health = 80f;
             _animationSpeed = 0.1f;
+            Textures[(int)CharacterStates.Hurt].Insert(1, Textures[(int)CharacterStates.Hurt][0]);
+            Textures[(int)CharacterStates.Hurt].Insert(2, Textures[(int)CharacterStates.Hurt][2]);
         }
         public static List<List<Texture2D>> SpriteSheet(Texture2D spritesheet, int w, int h)
         {
@@ -107,6 +111,10 @@ namespace Platformer
                         Jumped = false;
                         Attacking = false;
                     }
+                    if (States == CharacterStates.Hurt)
+                    {
+                        Hurt = false;
+                    }
                     _count = 0;
                 }
                 Texture = Textures[(int)States][_count];
@@ -116,7 +124,7 @@ namespace Platformer
             }
 
             _velocity.X = 0;
-            if (!Jumped && !Attacking)
+            if (!Jumped && !Attacking&& !Hurt)
                 Idle = true;
             _grounded = false;
             //States
@@ -125,7 +133,7 @@ namespace Platformer
                 if (InputManager.IsKeyPressed(Keys.D))
                 {
                     _velocity.X = Speed;
-                    if (!Jumped && !Attacking)
+                    if (!Jumped && !Attacking&&!Hurt)
                         States = CharacterStates.Run;
                     if (!RightDirection)
                     {
@@ -143,7 +151,7 @@ namespace Platformer
                 else if (InputManager.IsKeyPressed(Keys.A))
                 {
                     _velocity.X = -Speed;
-                    if (!Jumped && !Attacking)
+                    if (!Jumped && !Attacking && !Hurt)
                         States = CharacterStates.Run;
                     if (RightDirection)
                     {
@@ -166,6 +174,7 @@ namespace Platformer
                     Idle = false;
                     Jumped = true;
                     Attacking = false;
+                    Hurt = false;
                 }
                 if (InputManager.IsKeyClicked(Keys.Space))
                 {
@@ -184,7 +193,7 @@ namespace Platformer
                         Idle = false;
                         Attacking = true;
                     }
-
+                    Hurt = false;
                 }
                 if (!_grounded)
                 {
@@ -198,6 +207,8 @@ namespace Platformer
                 Rectangle newHitbox;
                 foreach (Tile collider in map.Tiles)
                 {
+                    if (Hitbox(Position).Intersects(collider.Rectangle)) { collider.IsPlayerHere = true; continue; }
+                    else { collider.IsPlayerHere = false; }
                     if (!collider.Visible) continue;
                     if (newPos.X != Position.X)
                     {
@@ -301,6 +312,8 @@ namespace Platformer
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, 80, 10), Color.Red);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10),Color.Green);
         }
         private Texture2D FlipTexture(Texture2D texture)
         {
