@@ -8,27 +8,43 @@ namespace Platformer
     {
         public int[,] Map2D()
         {
-            int[,] level = new int[100,100];
+            int[,] level = new int[102,102];
             
-            if (!File.Exists(@"level" + 1 + ".txt"))
+            if (!File.Exists(@"level" + Globals.Level + ".txt"))
             {
-                StreamWriter writer = File.CreateText(@"level" + 1 + ".txt");
-                for (int i = 0; i < 40; i++)
+                StreamWriter writer = File.CreateText(@"level" + Globals.Level + ".txt");
+                for (int j = 0; j < 102; j++)
                 {
-                    for (int j = 0; j < 20; j++)
+                    writer.Write('1');
+                }
+                writer.WriteLine();
+                for (int i = 0; i < 100; i++)
+                {
+                    for (int j = 0; j < 102; j++)
                     {
-                        writer.Write('1');
+                        if ((j==0) || (j == 101))
+                        {
+                            writer.Write('1');
+                        }
+                        else
+                        {
+                            writer.Write('0');
+                        }
                     }
                     writer.WriteLine();
+                }
+                for (int j = 0; j < 102; j++)
+                {
+                    writer.Write('1');
                 }
                 writer.Close();
 
             }
-            StreamReader reader = new StreamReader(@"level" + 1 + ".txt");
+            StreamReader reader = new StreamReader(@"level" + Globals.Level + ".txt");
 
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < 102; i++)
             {
-                for (int j = 0; j < 20; j++)
+                for (int j = 0; j < 102; j++)
                 {
                     int data = Convert.ToInt32(((char)reader.Read()).ToString());
                     level[i, j] = data;
@@ -55,27 +71,38 @@ namespace Platformer
         public (int x, int y) ScreentoMap (Vector2 position)=> ((int)position.X/width,(int)position.Y/width);
         public Map()
         {
+
+            NewGame();
+        }
+        public void NewGame()
+        {
+            Borders.Clear();
             int[,] map = Map2D();
-            AddBorder(160,40*80);
+            AddBorder(160, 100 * 80);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
-            for (int y = 0; y < map.GetLength(1);y++)
+            for (int y = 0; y < map.GetLength(1); y++)
             {
                 for (int x = 0; x < map.GetLength(0); x++)
                 {
                     Tile tile = new(_soilTexture, MaptoScreen(x, y));
-                    if (map[x,y] == 1)
+                    if (map[x, y] == 1)
                     {
-                        if (y - 1 >= 0 && map[x,y-1] == 1)
+                        if (y - 1 >= 0 && map[x, y - 1] == 1)
                         {
                             tile.Texture = _soil2Texture;
                         }
-                        tile.Visible = true ;
+                        tile.Visible = true;
                     }
                     Tiles[x, y] = tile;
                     if (map[x, y] == 2)
                     {
                         Enemy enemy = new(Globals.Content.Load<Texture2D>("Dog (2)"), MaptoScreen(x, y));
                         Enemies.Add(enemy);
+                    }
+                    if (map[x, y] == 3)
+                    {
+                        Treasure treasure = new(Globals.Content.Load<Texture2D>("treasure"), MaptoScreen(x, y)+new Vector2(40,40));
+                        Treasures.Add(treasure);
                     }
                 }
             }
@@ -85,10 +112,10 @@ namespace Platformer
         private void AddBorder(int width, int length)
         {
 
-            Rectangle westwall = new Rectangle(0 - width, 0, width, length);
-            Rectangle eastwall = new Rectangle(length, 0, width, length);
-            Rectangle northwall = new Rectangle(0, 0 - width, length, width);
-            Rectangle southwall = new Rectangle(0, length, length, width);
+            Rectangle westwall = new Rectangle(80 - width, 80, width, length);
+            Rectangle eastwall = new Rectangle(80+length, 80, width, length);
+            Rectangle northwall = new Rectangle(80, 80 - width, length, width);
+            Rectangle southwall = new Rectangle(80, 80+length, length, width);
             Borders.Add(westwall);
             Borders.Add(eastwall);
             Borders.Add(northwall);
@@ -112,42 +139,63 @@ namespace Platformer
             {
                 Borders[i] = new Rectangle(Borders[i].X + (int)displacement.X, Borders[i].Y+ (int)displacement.Y, Borders[i].Width, Borders[i].Height);
             }
+            for (int i = 0; i <Enemies.Count; i++)
+            {
+                if (Enemies[i].Died)
+                {
+                    Enemies.RemoveAt(i);
+                    i--;
+                }
+            }
             foreach (Enemy enemy in Enemies)
             {
                 if (UserInterface.open || UserInterface.EditOpen)
                 {
                     enemy.Speed = 0;
                 }
-                enemy.Update(displacement, Tiles,Player);
-                if (Player.Attacking&&enemy.Hitbox(enemy.Position).Intersects(Player.AttackRange()))
+                else
                 {
-                    if (!enemy.Hurt)
+                    if (Player.Attacking && enemy.Hitbox(enemy.Position).Intersects(Player.AttackRange()))
                     {
-                        enemy.Health -= 5;
-                        enemy.Hurt = true;
-                        enemy.States = EnemyStates.Hurt;
-                    }
+                        if (!enemy.Hurt)
+                        {
+                            if (enemy._spriteEffect != Player.SpriteEffect)
+                            {
+                                enemy.Health -= 20;
+                            }
+                            else
+                            {
+                                enemy.Health -= 5;
+                            }
 
-                }
-                if (enemy.Hurt != true&&enemy.AttackRange().Intersects(Player.Hitbox(Player.Position)) && !Player.Hurt )
-                {
-                    if (!enemy.IsAttacking)
-                    {
-                        enemy.IsAttacking = true;
-                        enemy.States = EnemyStates.Attack;
-                        enemy._count = 0;
-                        enemy.Speed = 0;
+                            enemy.Hurt = true;
+                            enemy.States = EnemyStates.Hurt;
+                            enemy.Speed = 0;
+                        }
+
                     }
-                    else 
+                    if (enemy.Hurt != true && enemy.AttackRange().Intersects(Player.Hitbox(Player.Position)) && !Player.Hurt)
                     {
-                        Player.States = Character.CharacterStates.Hurt;
-                        Player.Hurt = true;
-                        Player.Idle = false;
-                        Player.Attacking = false;
-                        Player.Jumped = false;
-                        Player.Health -= 5;
+                        if (!enemy.IsAttacking)
+                        {
+                            enemy.IsAttacking = true;
+                            enemy.States = EnemyStates.Attack;
+                            enemy._count = 0;
+                            enemy.Speed = 0;
+                        }
+                        else
+                        {
+                            Player.States = Character.CharacterStates.Hurt;
+                            Player.Hurt = true;
+                            Player.Idle = false;
+                            Player.Attacking = false;
+                            Player.Jumped = false;
+                            Player.Health -= 5;
+                        }
                     }
                 }
+                enemy.Update(displacement, Tiles,Player);
+
             }
             if (UserInterface.MouseState == "soil")
             {

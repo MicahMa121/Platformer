@@ -61,7 +61,7 @@ namespace Platformer
         {
             player = new(Globals.Content.Load<Texture2D>("character"),
          Globals.Content.Load<Texture2D>("character2 (1)"),
-         new(0,0));
+         new(300,300));
             userInterface = new UserInterface();
             this.Window.Title = "about to load file";
             map = new();
@@ -97,7 +97,7 @@ namespace Platformer
             {
 
                 player.Update(map);
-                userInterface.Update();
+                userInterface.Update(map);
                 if (map.UserInterface.open)
                 {
                     player.CanMove = false;

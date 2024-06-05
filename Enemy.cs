@@ -15,6 +15,8 @@ namespace Platformer
         public Rectangle Rectangle { get; set; }
         public float Rotation { get; protected set; } = 0f;
         public List<List<Texture2D>> Textures { get; set; }
+
+        public SpriteEffects _spriteEffect;
         public enum EnemyStates
         {
             Attack,
@@ -28,6 +30,7 @@ namespace Platformer
         public float Health { get; set; }
         public Enemy(Texture2D spritesheet, Vector2 position)
         {
+            _spriteEffect = SpriteEffects.None;
             Position = position;
             Rectangle = new((int)Position.X, (int)Position.Y, spritesheet.Width / 6, spritesheet.Height / 6);
             Textures = SpriteSheet(spritesheet, 5, 5);
@@ -76,13 +79,44 @@ namespace Platformer
         }
         public int _count = 0;
         public bool IsAttacking { get; set; } = false;
+        public bool Dying { get; set; } = false;
+        public bool Died { get; set; } = false;
         public void Update(Vector2 displacement, Tile[,] tiles,Character player)
         {
+            if (Health<= 0&&!Dying) 
+            { 
+                Dying = true;
+                States = EnemyStates.Death;
+                _count = 0;
+            }
+            if (Dying )
+            {
+                _time += Globals.Time;
+                if (_time >= _animationSpeed)
+                {
+                    _count++;
+                    if (_count >= Textures[(int)States].Count)
+                    {
+                        Died = true;
+                    }
+                    else
+                    {
+                                  Texture = Textures[(int)States][_count];          
+                    }
+                    _time = 0;
+                }
+                return;
+            }
             if (RightDirection)
             {
                 _velocity.X = -Speed;
+                _spriteEffect = SpriteEffects.None;
             }
-            else { _velocity.X = Speed; }
+            else 
+            {
+                _velocity.X = Speed;
+                _spriteEffect = SpriteEffects.FlipHorizontally;
+            }
             //Textures
             _time += Globals.Time;
             if (!IsAttacking&&!Hurt)
@@ -137,13 +171,7 @@ namespace Platformer
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
                         newPos.X = Position.X;
-                        for (int i = 0; i < Textures.Count; i++)
-                        {
-                            for (int j = 0; j < Textures[i].Count; j++)
-                            {
-                                Textures[i][j] = FlipTexture(Textures[i][j]);
-                            }
-                        }
+
                         RightDirection = !RightDirection;
                     }
                 }
@@ -189,7 +217,7 @@ namespace Platformer
         {
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
-            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
+            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, _spriteEffect, 0f);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, 80, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10), Color.Green);
         }

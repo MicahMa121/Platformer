@@ -1,8 +1,5 @@
 ﻿
 
-using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
-
 namespace Platformer
 {
     public class Character //https://craftpix.net/freebies/free-3-character-sprite-sheets-pixel-art/
@@ -38,6 +35,7 @@ namespace Platformer
         public bool Jumped { get; set; } = false;
         public bool Idle { get; set; } = true;
         public float Health { get; set; } 
+        public SpriteEffects SpriteEffect { get; set; }
         public Character(Texture2D spritesheet,Texture2D spritesheet2, Vector2 position)
         {
             Position = position;
@@ -50,6 +48,7 @@ namespace Platformer
             _time = 0;
             Health = 80f;
             _animationSpeed = 0.1f;
+            SpriteEffect = SpriteEffects.None;
             Textures[(int)CharacterStates.Hurt].Insert(1, Textures[(int)CharacterStates.Hurt][0]);
             Textures[(int)CharacterStates.Hurt].Insert(2, Textures[(int)CharacterStates.Hurt][2]);
         }
@@ -137,13 +136,7 @@ namespace Platformer
                         States = CharacterStates.Run;
                     if (!RightDirection)
                     {
-                        for (int i = 0; i < Textures.Count; i++)
-                        {
-                            for (int j = 0; j < Textures[i].Count; j++)
-                            {
-                                Textures[i][j] = FlipTexture(Textures[i][j]);
-                            }
-                        }
+                        SpriteEffect = SpriteEffects.None;
                         RightDirection = true;
                     }
                     Idle = false;
@@ -155,13 +148,7 @@ namespace Platformer
                         States = CharacterStates.Run;
                     if (RightDirection)
                     {
-                        for (int i = 0; i < Textures.Count; i++)
-                        {
-                            for (int j = 0; j < Textures[i].Count; j++)
-                            {
-                                Textures[i][j] = FlipTexture(Textures[i][j]);
-                            }
-                        }
+                        SpriteEffect = SpriteEffects.FlipHorizontally;
                         RightDirection = false;
                     }
                     Idle = false;
@@ -311,7 +298,7 @@ namespace Platformer
             if (Attacking)
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
-            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffects.None, 0f);
+            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffect, 0f);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, 80, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10),Color.Green);
         }

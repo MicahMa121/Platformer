@@ -4,6 +4,7 @@ namespace Platformer
 {
     internal class Globals
     {
+        public static int Level { get; set; } = 1;
         public static float Time { get; set; }
         public static ContentManager Content { get; set; }
         public static SpriteBatch SpriteBatch { get; set; }

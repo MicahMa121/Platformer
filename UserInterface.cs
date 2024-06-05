@@ -1,4 +1,7 @@
 ﻿
+using System;
+using System.IO;
+
 namespace Platformer
 {
     public class UserInterface
@@ -32,30 +35,77 @@ namespace Platformer
             Buttons.Add(EditLevelBtn);
             SaveEditBtn = new(Origin - new Vector2(0, 120), "Save Edit");
             Buttons.Add(SaveEditBtn);
-            Soil = Rectangle(80, 80, new Vector2(Origin.X - 150, 550));
-            Enemy = Rectangle(80, 80, new Vector2(Origin.X - 50, 550));
-            Treasure = Rectangle(60,45, new Vector2(Origin.X + 50, 550));
+            Soil = Rectangle(80, 80, new Vector2(Origin.X - 150, 570));
+            Enemy = Rectangle(80, 80, new Vector2(Origin.X - 50, 570));
+            Treasure = Rectangle(60,45, new Vector2(Origin.X + 50, 570));
         }
-        public void Update()
+        public void Update(Map map)
         {
             foreach (Button button in Buttons)
                 button.Update();
-            if (InputManager.MouseClicked && 
-                EditLevelBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
+            if (open)
             {
-                open = false;
-                UIrect = Rectangle(0, 0, Origin);
-                EditOpen = true;
-                Menurect = Rectangle(400, 100, new(Origin.X,550));
+                if (InputManager.MouseClicked &&
+    EditLevelBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
+                {
+                    open = false;
+                    UIrect = Rectangle(0, 0, Origin);
+                    EditOpen = true;
+                    Menurect = Rectangle(400, 100, new(Origin.X, 570));
+                }
+                if (InputManager.MouseClicked &&
+        NewGameBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
+                {
+                    open = false;
+                    UIrect = Rectangle(0, 0, Origin);
+                    map.NewGame();
+                }
+                if (InputManager.MouseClicked &&
+        SaveEditBtn.Rectangle(SaveEditBtn.Width, SaveEditBtn.Height).Contains(InputManager.MouseRectangle))
+                {
+                    SaveEditBtn.Text = "Saved";
+                    EditOpen = false;
+                    Menurect = Rectangle(0, 0, Origin);
+                    MouseState = null;
+                    StreamWriter writer = File.CreateText(@"level" + Globals.Level + ".txt");
+                    for (int y = 0; y < map.Tiles.GetLength(0); y++)
+                    {
+                        for (int x = 0; x < map.Tiles.GetLength(1); x++)
+                        {
+                            bool empty = true;
+                            if (map.Tiles[y, x].Visible)
+                            {
+                                writer.Write('1');
+                                empty = false;
+                            }
+                            else
+                            {
+                                foreach (Enemy enemy in map.Enemies)
+                                {
+                                    if (map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)enemy.Position.X, (int)enemy.Position.Y, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('2');
+                                    }
+                                }
+                                foreach (Treasure treasure in map.Treasures)
+                                {
+                                    if (map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)treasure.Position.X, (int)treasure.Position.Y, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('3');
+                                    }
+                                }
+                            }
+                            if (empty)
+                                writer.Write('0');
+                        }
+                        writer.WriteLine();
+                    }
+                    writer.Close();
+                }
             }
-            if (InputManager.MouseClicked &&
-    SaveEditBtn.Rectangle(SaveEditBtn.Width, SaveEditBtn.Height).Contains(InputManager.MouseRectangle))
-            {
-                SaveEditBtn.Text = "Saved";
-                EditOpen = false;
-                Menurect  = Rectangle(0, 0, Origin);
-                MouseState = null;
-            }
+
             if (InputManager.MouseClicked && Settingrect.Contains(InputManager.MouseRectangle))
             {
                 if (open)
@@ -100,7 +150,7 @@ namespace Platformer
             if (EditOpen)
             {
                 Globals.SpriteBatch.Draw(_tex, Menurect, Color.SaddleBrown);
-                Rectangle rect = Rectangle(Menurect.Width - Menurect.Height / 20, Menurect.Height - Menurect.Height / 20, new(Origin.X, 550));
+                Rectangle rect = Rectangle(Menurect.Width - Menurect.Height / 20, Menurect.Height - Menurect.Height / 20, new(Origin.X, 570));
                 Globals.SpriteBatch.Draw(_tex, rect, Color.SandyBrown);
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Soil"), Soil, Color.White);
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Dog1"), Enemy, Color.White);
