@@ -6,6 +6,8 @@
         public Vector2 Position { get; set; }
         public Rectangle Rectangle { get; set; }
         private Vector2 _velocity;
+        private float _opacity = 1f;
+        public bool Opened { get; set; }= false;
         public Treasure(Texture2D texture, Vector2 position)
         {
             Texture = texture;
@@ -15,6 +17,7 @@
         }
         public void Update(Vector2 displacement, Tile[,] tiles)
         {
+            
             Position += displacement;
             //movement
             _velocity.Y += Globals.Gravity;

@@ -11,7 +11,7 @@ namespace Platformer
         public static Point WindowSize { get; set; }
         public static GraphicsDevice Device { get; set; }
         public static SpriteFont Font { get; set; }
-        public static int Gravity { get; set; } = 1;
+        public static float Gravity { get; set; } = 1;
         public static void Update(GameTime gt)
         {
             Time = (float)gt.ElapsedGameTime.TotalSeconds;

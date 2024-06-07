@@ -47,6 +47,7 @@ namespace Platformer
             Origin = Vector2.Zero;//new(spritesheet.Width / 12, spritesheet.Height / 12);
             _time = 0;
             Health = 80f;
+            Stamina = 80f;
             _animationSpeed = 0.1f;
             SpriteEffect = SpriteEffects.None;
             Textures[(int)CharacterStates.Hurt].Insert(1, Textures[(int)CharacterStates.Hurt][0]);
@@ -88,6 +89,7 @@ namespace Platformer
         private int _count = 0;
         public bool Attacking { get; set; } = false;
         public bool CanMove { get; set; } = true;
+        public float Stamina { get; set; } 
         public void Update(Map map)
         {
             //Textures
@@ -95,6 +97,11 @@ namespace Platformer
 
             if (_time >= _animationSpeed)
             {
+                Stamina += 3f;
+                if (Stamina >= 80f)
+                {
+                    Stamina = 80f;
+                }
                 if (_count >= Textures[(int)States].Count)
                 {
                     if (States == CharacterStates.Jump)
@@ -153,11 +160,12 @@ namespace Platformer
                     }
                     Idle = false;
                 }
-                if (InputManager.IsKeyClicked(Keys.W))
+                if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
                 {
-                    _velocity.Y = -Gravity * 15;
+                    _velocity.Y = - 15;
                     _grounded = false;
                     States = CharacterStates.Jump;
+                    Stamina -= 20;
                     Idle = false;
                     Jumped = true;
                     Attacking = false;
@@ -184,7 +192,7 @@ namespace Platformer
                 }
                 if (!_grounded)
                 {
-                    _velocity.Y += Gravity;
+                    _velocity.Y += Globals.Gravity;
                 }
                 if (Idle)
                 {
@@ -272,7 +280,6 @@ namespace Platformer
 
         }
         public Vector2 MapDisplacement { get; set; }
-        public int Gravity { get; set; } = 1;
         public int Speed { get; set; } = 5;
         private Vector2 _velocity;
         private bool _grounded = true;
@@ -301,6 +308,7 @@ namespace Platformer
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffect, 0f);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, 80, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10),Color.Green);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y+10, (int)Stamina, 2), Color.LightGoldenrodYellow);
         }
         private Texture2D FlipTexture(Texture2D texture)
         {

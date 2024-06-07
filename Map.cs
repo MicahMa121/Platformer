@@ -76,7 +76,10 @@ namespace Platformer
         }
         public void NewGame()
         {
+            Coins.Clear();
             Borders.Clear();
+            Treasures.Clear();
+            Enemies.Clear();
             int[,] map = Map2D();
             AddBorder(160, 100 * 80);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
@@ -121,8 +124,13 @@ namespace Platformer
             Borders.Add(northwall);
             Borders.Add (southwall);
         }
+        public List<Coin> Coins { get; set; } = new List<Coin> ();
         public void Update(Vector2 displacement)
         {
+            foreach(var coin in Coins)
+            {
+                coin.Update(displacement, Tiles);
+            }
             foreach (var tile in Tiles)
             {
                 if (tile == null) continue;
@@ -133,7 +141,7 @@ namespace Platformer
             foreach (Treasure treasure in Treasures)
             {
                 treasure.Update(displacement, Tiles);
-
+                //if ()
             }
             for (int i = 0; i < Borders.Count; i++)
             {
@@ -143,6 +151,8 @@ namespace Platformer
             {
                 if (Enemies[i].Died)
                 {
+                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Enemies[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y));
+                    Coins.Add(coin);
                     Enemies.RemoveAt(i);
                     i--;
                 }
@@ -339,6 +349,10 @@ namespace Platformer
             foreach (Treasure treasure in Treasures)
             {
                 treasure.Draw();
+            }
+            foreach (var coin in Coins)
+            {
+                coin.Draw() ;
             }
         }
     }

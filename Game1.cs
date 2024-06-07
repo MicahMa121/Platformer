@@ -19,6 +19,7 @@ namespace Platformer
 
         Character player;
         Screen screen;
+        List<Background> backgrounds = new List<Background> ();
 
         Map map;
         string loadTxt = "Click to Start";
@@ -55,6 +56,12 @@ namespace Platformer
             Globals.SpriteBatch = _spriteBatch;
             // TODO: use this.Content to load your game content here
             Globals.Font = Content.Load<SpriteFont>("spritefont");
+            Background mountain = new(Content.Load<Texture2D>("MountainBackground"),640,320,100,0,0.2f);
+            backgrounds.Add(mountain);
+            Background forest = new(Content.Load<Texture2D>("Trees"), 640, 240, 0, 0, 0.3f);
+            backgrounds.Add(forest);
+            Background cloud = new(Content.Load<Texture2D>("Cloud"), 640, 250, 480, 1, 0.4f);
+            backgrounds.Add(cloud);
         }
 
         protected void GameRun()
@@ -87,7 +94,10 @@ namespace Platformer
                     button.Text = "Loading...";
                     screen = Screen.load;
                 }
-
+                foreach (Background background in backgrounds)
+                {
+                    background.Update(0f);
+                }
             }
             else if (screen == Screen.load)
             {
@@ -98,6 +108,10 @@ namespace Platformer
 
                 player.Update(map);
                 userInterface.Update(map);
+                foreach (Background background in backgrounds)
+                {
+                    background.Update(player.MapDisplacement.X);
+            }
                 if (map.UserInterface.open)
                 {
                     player.CanMove = false;
@@ -107,7 +121,7 @@ namespace Platformer
                     player.CanMove = true;
                 }
             }
-
+            this.Window.Title = _graphics.PreferredBackBufferWidth.ToString() +" "+ Globals.WindowSize.X;
             base.Update(gameTime);
         }
 
@@ -119,6 +133,10 @@ namespace Platformer
             // TODO: Add your drawing code here
 
             _spriteBatch.Begin();
+            foreach (Background background in backgrounds)
+            {
+                background.Draw();
+            }
             if (screen == Screen.intro)
             {
                 button.Draw();

@@ -21,6 +21,8 @@ namespace Platformer
         public Button NewGameBtn;
         public Button EditLevelBtn;
         public Button SaveEditBtn;
+        public Button LevelBtn;
+        public Button GravityBtn; 
         public bool EditOpen = false;
         public Rectangle Soil, Enemy, Treasure;
         public UserInterface()
@@ -31,20 +33,46 @@ namespace Platformer
             Menurect = Rectangle(0,0, Origin);
             NewGameBtn = new(Origin - new Vector2(0, 200), "New Game");
             Buttons.Add(NewGameBtn);
-            EditLevelBtn =  new(Origin - new Vector2(0, 160), "Edit Level");
+            EditLevelBtn =  new(Origin - new Vector2(0, 80), "Edit Level");
             Buttons.Add(EditLevelBtn);
             SaveEditBtn = new(Origin - new Vector2(0, 120), "Save Edit");
             Buttons.Add(SaveEditBtn);
+            LevelBtn = new(Origin - new Vector2(0, 160), "Level  "+ Globals.Level);
+            Buttons.Add(LevelBtn);
+            GravityBtn = new(Origin - new Vector2(0, 40), "Gravity:  " + Globals.Gravity*4);
+            Buttons.Add(GravityBtn);
             Soil = Rectangle(80, 80, new Vector2(Origin.X - 150, 570));
             Enemy = Rectangle(80, 80, new Vector2(Origin.X - 50, 570));
             Treasure = Rectangle(60,45, new Vector2(Origin.X + 50, 570));
+            PreviousLevel = 1;
         }
+        public int PreviousLevel { get; set; }
         public void Update(Map map)
         {
             foreach (Button button in Buttons)
                 button.Update();
             if (open)
             {
+                if (InputManager.MouseClicked &&
+GravityBtn.Rectangle(GravityBtn.Width, GravityBtn.Height).Contains(InputManager.MouseRectangle))
+                {
+                    Globals.Gravity -= 0.25f;
+                    if (Globals.Gravity < 0.5)
+                    {
+                        Globals.Gravity = 2;
+                    }
+                    GravityBtn.Text = "Gravity:  " + Math.Round(Globals.Gravity * 2,2);
+                }
+                if (InputManager.MouseClicked &&
+LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseRectangle))
+                {
+                    Globals.Level++;
+                    if (Globals.Level >= 5)
+                    {
+                        Globals.Level = 1;
+                    }
+                    LevelBtn.Text = "level " + Globals.Level;
+                }
                 if (InputManager.MouseClicked &&
     EditLevelBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
                 {
@@ -54,11 +82,13 @@ namespace Platformer
                     Menurect = Rectangle(400, 100, new(Origin.X, 570));
                 }
                 if (InputManager.MouseClicked &&
-        NewGameBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
+        NewGameBtn.Rectangle(NewGameBtn.Width, NewGameBtn.Height).Contains(InputManager.MouseRectangle))
                 {
                     open = false;
                     UIrect = Rectangle(0, 0, Origin);
                     map.NewGame();
+                    map.Player.Health = 80;
+                    PreviousLevel = Globals.Level;
                 }
                 if (InputManager.MouseClicked &&
         SaveEditBtn.Rectangle(SaveEditBtn.Width, SaveEditBtn.Height).Contains(InputManager.MouseRectangle))
@@ -82,10 +112,11 @@ namespace Platformer
                             {
                                 foreach (Enemy enemy in map.Enemies)
                                 {
-                                    if (map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)enemy.Position.X, (int)enemy.Position.Y, 1, 1)))
+                                    if (map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)enemy.Rectangle.Center.X, (int)enemy.Rectangle.Center.Y, 1, 1)))
                                     {
                                         empty = false;
                                         writer.Write('2');
+                                        continue;
                                     }
                                 }
                                 foreach (Treasure treasure in map.Treasures)
@@ -94,6 +125,7 @@ namespace Platformer
                                     {
                                         empty = false;
                                         writer.Write('3');
+                                        continue;
                                     }
                                 }
                             }
@@ -117,6 +149,8 @@ namespace Platformer
                 {
                     open = true;
                     SaveEditBtn.Text = "Save Edit";
+                    Globals.Level = PreviousLevel;
+                    LevelBtn.Text = "level" + Globals.Level;
                     UIrect = Rectangle(320, 480, Origin);
                 }
             }

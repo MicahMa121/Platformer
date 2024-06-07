@@ -13,6 +13,10 @@ namespace Platformer
         public Vector2 Origin { get; protected set; }
         public Color Color { get; set; } = Color.White;
         public Rectangle Rectangle { get; set; }
+
+        
+
+
         public float Rotation { get; protected set; } = 0f;
         public List<List<Texture2D>> Textures { get; set; }
 
@@ -150,7 +154,7 @@ namespace Platformer
             Position += displacement;
             Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
             //movement
-            _velocity.Y += Gravity;
+            _velocity.Y += Globals.Gravity;
             //collision
             Vector2 newPos = Position + _velocity;
             Rectangle newHitbox;
@@ -191,8 +195,6 @@ namespace Platformer
             }
             Position = newPos;
         }
-
-        public int Gravity { get; set; } = 1;
         public int Speed { get; set; } = 2;
         private Vector2 _velocity;
         public bool Hurt { get; set; }
