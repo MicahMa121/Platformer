@@ -65,7 +65,8 @@ namespace Platformer
         {
             return !UserInterface.UIrect.Contains(InputManager.MouseRectangle)
                 && !UserInterface.Settingrect.Contains(InputManager.MouseRectangle)
-                && !UserInterface.Menurect.Contains(InputManager.MouseRectangle);
+                && !UserInterface.Menurect.Contains(InputManager.MouseRectangle)&&
+                !Shop.Rectangle(Shop.Width,Shop.Height).Contains(InputManager.MouseRectangle);
         }
         public Vector2 MaptoScreen(int x, int y) => new(x * width, y * width);
         public (int x, int y) ScreentoMap (Vector2 position)=> ((int)position.X/width,(int)position.Y/width);
@@ -80,6 +81,8 @@ namespace Platformer
             Borders.Clear();
             Treasures.Clear();
             Enemies.Clear();
+            Money = 0;
+            Shop = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
             AddBorder(160, 100 * 80);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
@@ -112,6 +115,7 @@ namespace Platformer
         }
         public Character Player { get; set; } 
         public List<Rectangle> Borders { get; set; } = new List<Rectangle> ();
+        public int Money { get; set; }
         private void AddBorder(int width, int length)
         {
 
@@ -125,11 +129,29 @@ namespace Platformer
             Borders.Add (southwall);
         }
         public List<Coin> Coins { get; set; } = new List<Coin> ();
+        public Button Shop { get; set; } 
         public void Update(Vector2 displacement)
         {
+
             foreach(var coin in Coins)
             {
                 coin.Update(displacement, Tiles);
+                if (!coin.Collected&&coin.Rectangle.Intersects(Player.Hitbox(Player.Position)))
+                {
+                    coin.Collected = true;
+                    Money += coin.Value;
+                    Shop.Text = "$ " + Money;
+
+                }
+            }
+            Shop.Update();
+            for (int i = 0; i < Coins.Count; i++)
+            {
+                if (Coins[i].Collected && Coins[i].Opacity <= 0f)
+                {
+                    Coins.RemoveAt(i);
+                    i--;
+                }
             }
             foreach (var tile in Tiles)
             {
@@ -151,7 +173,7 @@ namespace Platformer
             {
                 if (Enemies[i].Died)
                 {
-                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Enemies[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y));
+                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Enemies[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y),5);
                     Coins.Add(coin);
                     Enemies.RemoveAt(i);
                     i--;
@@ -354,6 +376,7 @@ namespace Platformer
             {
                 coin.Draw() ;
             }
+            Shop.Draw();
         }
     }
 }

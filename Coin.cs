@@ -16,11 +16,16 @@ namespace Platformer
         private int _upDown;
         private int _speed;
         private Random _gen = new Random();
-        public Coin(Texture2D texture, Vector2 position)
+        private float _opacity = 1f;
+        public float Opacity { get { return _opacity; } }
+        public bool Collected { get; set; } = false;
+        public int Value { get; set; }
+        public Coin(Texture2D texture, Vector2 position, int value)
         {
             _texture = texture;
             Position = position;
-            _rect = Globals.Rectangle(20, 20, position);
+            _rect = Globals.Rectangle(20+ value , 10 + 2*value, position);
+            Value = value;
             _rectDraw = _rect;
             _time = 0;
             _upDown = 0;
@@ -30,6 +35,21 @@ namespace Platformer
         public void Update(Vector2 displacement, Tile[,] tiles)
         {
             _time += Globals.Time;
+            if (Collected)
+            {
+                if (_opacity <= 0f)
+                {
+                    return;
+                }
+                if (_time  >=  _animationSpeed)
+                {
+                    _opacity += -0.05f;
+                    _rectDraw.Y += -3;
+
+                }
+                return;
+            }
+
             //displacement
             Position += displacement;
             //movement
@@ -85,7 +105,7 @@ namespace Platformer
         }
         public void Draw()
         {
-            Globals.SpriteBatch.Draw(_texture, _rectDraw, Color.White) ;
+            Globals.SpriteBatch.Draw(_texture, _rectDraw,new Color(Color.White,_opacity)) ;
         }
     }
 }

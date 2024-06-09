@@ -39,7 +39,7 @@ namespace Platformer
             Buttons.Add(SaveEditBtn);
             LevelBtn = new(Origin - new Vector2(0, 160), "Level  "+ Globals.Level);
             Buttons.Add(LevelBtn);
-            GravityBtn = new(Origin - new Vector2(0, 40), "Gravity:  " + Globals.Gravity*4);
+            GravityBtn = new(Origin - new Vector2(0, 40), "Gravity:  " + Globals.Gravity*2);
             Buttons.Add(GravityBtn);
             Soil = Rectangle(80, 80, new Vector2(Origin.X - 150, 570));
             Enemy = Rectangle(80, 80, new Vector2(Origin.X - 50, 570));
@@ -112,7 +112,8 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                             {
                                 foreach (Enemy enemy in map.Enemies)
                                 {
-                                    if (map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)enemy.Rectangle.Center.X, (int)enemy.Rectangle.Center.Y, 1, 1)))
+                                    if (empty&&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)enemy.Rectangle.Center.X, (int)enemy.Rectangle.Center.Y, 1, 1)))
                                     {
                                         empty = false;
                                         writer.Write('2');
@@ -121,7 +122,8 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                 }
                                 foreach (Treasure treasure in map.Treasures)
                                 {
-                                    if (map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)treasure.Position.X, (int)treasure.Position.Y, 1, 1)))
+                                    if (empty&&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)treasure.Position.X, (int)treasure.Position.Y, 1, 1)))
                                     {
                                         empty = false;
                                         writer.Write('3');

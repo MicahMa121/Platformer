@@ -1,4 +1,6 @@
 ﻿
+using static System.Net.Mime.MediaTypeNames;
+
 namespace Platformer
 {
     public class Button
@@ -33,6 +35,8 @@ namespace Platformer
         }
         public void Update()
         {
+            Width = (int)Globals.Font.MeasureString(Text).X * 3 / 2;
+            Height = (int)Globals.Font.MeasureString(Text).Y * 2;
             if (Rectangle(Width,Height).Contains(InputManager.MouseRectangle))
             {
                 if (InputManager.MouseDown)
