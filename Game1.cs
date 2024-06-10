@@ -111,7 +111,7 @@ namespace Platformer
                 foreach (Background background in backgrounds)
                 {
                     background.Update(player.MapDisplacement.X);
-            }
+                }
                 if (map.UserInterface.open)
                 {
                     player.CanMove = false;

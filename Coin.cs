@@ -73,7 +73,7 @@ namespace Platformer
                 {
                     if (_velocity.Y < 0)
                     {
-                        newPos.Y = collider.Rectangle.Bottom+10;
+                        newPos.Y = collider.Rectangle.Bottom+ 2 * Value;
                         _velocity.Y = 0;
                         _velocity.X = 0;
                     }

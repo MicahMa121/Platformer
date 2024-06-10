@@ -39,7 +39,7 @@ namespace Platformer
             Buttons.Add(SaveEditBtn);
             LevelBtn = new(Origin - new Vector2(0, 160), "Level  "+ Globals.Level);
             Buttons.Add(LevelBtn);
-            GravityBtn = new(Origin - new Vector2(0, 40), "Gravity:  " + Globals.Gravity*2);
+            GravityBtn = new(Origin - new Vector2(0, 40), "Gravity:  " + Globals.Gravity);
             Buttons.Add(GravityBtn);
             Soil = Rectangle(80, 80, new Vector2(Origin.X - 150, 570));
             Enemy = Rectangle(80, 80, new Vector2(Origin.X - 50, 570));
@@ -56,12 +56,12 @@ namespace Platformer
                 if (InputManager.MouseClicked &&
 GravityBtn.Rectangle(GravityBtn.Width, GravityBtn.Height).Contains(InputManager.MouseRectangle))
                 {
-                    Globals.Gravity -= 0.25f;
-                    if (Globals.Gravity < 0.5)
+                    Globals.Gravity -= 0.1f;
+                    if (Globals.Gravity <0.1f)
                     {
                         Globals.Gravity = 2;
                     }
-                    GravityBtn.Text = "Gravity:  " + Math.Round(Globals.Gravity * 2,2);
+                    GravityBtn.Text = "Gravity:  " + Math.Round(Globals.Gravity ,2);
                 }
                 if (InputManager.MouseClicked &&
 LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseRectangle))
