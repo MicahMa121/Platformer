@@ -46,8 +46,8 @@ namespace Platformer
             Texture = Textures[(int)States][0];
             Origin = Vector2.Zero;//new(spritesheet.Width / 12, spritesheet.Height / 12);
             _time = 0;
-            Health = 80f;
-            Stamina = 80f;
+            Health = Globals.TileSize;
+            Stamina = Globals.TileSize;
             _animationSpeed = 0.1f;
             SpriteEffect = SpriteEffects.None;
             Textures[(int)CharacterStates.Hurt].Insert(1, Textures[(int)CharacterStates.Hurt][0]);
@@ -98,9 +98,9 @@ namespace Platformer
             if (_time >= _animationSpeed)
             {
                 Stamina += 3f;
-                if (Stamina >= 80f)
+                if (Stamina >= Globals.TileSize)
                 {
-                    Stamina = 80f;
+                    Stamina = Globals.TileSize;
                 }
                 if (_count >= Textures[(int)States].Count)
                 {
@@ -132,7 +132,7 @@ namespace Platformer
             _velocity.X = 0;
             if (!Jumped && !Attacking&& !Hurt)
                 Idle = true;
-            _grounded = false;
+            //_grounded = false;
             //States
             if (CanMove)
             {
@@ -190,28 +190,22 @@ namespace Platformer
                     }
                     Hurt = false;
                 }
-                if (!_grounded)
-                {
-                    _velocity.Y += Globals.Gravity;
-                }
+                _velocity.Y += Globals.Gravity;
                 if (Idle)
                 {
                     States = CharacterStates.Idle;
                 }
                 Vector2 newPos = Position + _velocity;
-                Rectangle newHitbox;
+                Rectangle newHitbox = Hitbox(newPos);
                 foreach (Tile collider in map.Tiles)
                 {
                     if (Hitbox(Position).Intersects(collider.Rectangle)) { collider.IsPlayerHere = true; continue; }
                     else { collider.IsPlayerHere = false; }
                     if (!collider.Visible) continue;
-                    if (newPos.X != Position.X)
+                    newHitbox = Hitbox(new(newPos.X, Position.Y));
+                    if (newHitbox.Intersects(collider.Rectangle))
                     {
-                        newHitbox = Hitbox(new(newPos.X, Position.Y));
-                        if (newHitbox.Intersects(collider.Rectangle))
-                        {
-                            newPos.X = Position.X;
-                        }
+                        newPos.X = Position.X;
                     }
                     newHitbox = Hitbox(new(Position.X, newPos.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
@@ -254,25 +248,25 @@ namespace Platformer
                     }
                 }
                 MapDisplacement = new(0, 0);
-                if (newPos.Y >= 640 - 160 - 63)//down
+                if (newPos.Y >= Globals.WindowSize.Y*3/4 - newHitbox.Height)//down
                 {
-                    MapDisplacement += new Vector2(0, 640 - 160 - 63 - newPos.Y);
-                    newPos.Y = 640 - 160 - 63;
+                    MapDisplacement += new Vector2(0, Globals.WindowSize.Y * 3 / 4 - newHitbox.Height - newPos.Y);
+                    newPos.Y = Globals.WindowSize.Y * 3 / 4 - newHitbox.Height;
                 }
-                else if (newPos.Y <= 160 - 17)//up
+                else if (newPos.Y <= Globals.WindowSize.Y / 4 - (Globals.TileSize - newHitbox.Height))//up
                 {
-                    MapDisplacement += new Vector2(0, 160 - 17 - newPos.Y);
-                    newPos.Y = 160 - 17;
+                    MapDisplacement += new Vector2(0, Globals.WindowSize.Y / 4 - 17 - newPos.Y);
+                    newPos.Y = Globals.WindowSize.Y / 4 - 17;
                 }
-                if (newPos.X >= 640 - 160 - 57)//right
+                if (newPos.X >= Globals.WindowSize.X * 3 / 4 - 57)//right
                 {
-                    MapDisplacement += new Vector2(640 - 160 - 57 - newPos.X, 0);
-                    newPos.X = 640 - 160 - 57;
+                    MapDisplacement += new Vector2(Globals.WindowSize.X * 3 / 4 - 57 - newPos.X, 0);
+                    newPos.X = Globals.WindowSize.X * 3 / 4 - 57;
                 }
-                else if (newPos.X <= 160 - 23)//left
+                else if (newPos.X <= Globals.WindowSize.X / 4 - 23)//left
                 {
-                    MapDisplacement += new Vector2(160 - 23 - newPos.X, 0);
-                    newPos.X = 160 - 23;
+                    MapDisplacement += new Vector2(Globals.WindowSize.X / 4 - 23 - newPos.X, 0);
+                    newPos.X = Globals.WindowSize.X / 4 - 23;
                 }
                 Position = newPos;
                 map.Update(MapDisplacement);
@@ -306,7 +300,7 @@ namespace Platformer
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffect, 0f);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, 80, 10), Color.Red);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, Globals.TileSize, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10),Color.Green);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y+10, (int)Stamina, 2), Color.LightGoldenrodYellow);
         }

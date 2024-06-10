@@ -24,7 +24,7 @@ namespace Platformer
         {
             _texture = texture;
             Position = position;
-            _rect = Globals.Rectangle(20+ value , 10 + 2*value, position);
+            _rect = Globals.Rectangle(10+ 2*value , 10 + 2*value, position);
             Value = value;
             _rectDraw = _rect;
             _time = 0;
@@ -62,31 +62,31 @@ namespace Platformer
                 if (!collider.Visible) continue;
                 if (newPos.X != Position.X)
                 {
-                    newHitbox = Globals.Rectangle(20, 20, new(newPos.X, Position.Y));
+                    newHitbox = Globals.Rectangle(10 + 2 * Value, 10 + 2 * Value, new(newPos.X, Position.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
                         newPos.X = Position.X;
                     }
                 }
-                newHitbox = Globals.Rectangle(20, 20, new(Position.X, newPos.Y));
+                newHitbox = Globals.Rectangle(10 + 2 * Value, 10 + 2 * Value, new(Position.X, newPos.Y));
                 if (newHitbox.Intersects(collider.Rectangle))
                 {
-                    if (_velocity.Y >= 0)
+                    if (_velocity.Y < 0)
                     {
-                        newPos.Y = collider.Rectangle.Top - Rectangle.Height/2 - 1;
+                        newPos.Y = collider.Rectangle.Bottom+10;
                         _velocity.Y = 0;
                         _velocity.X = 0;
                     }
-                    else if (_velocity.Y < 0)
+                    if (_velocity.Y > 0)
                     {
-                        newPos.Y = collider.Rectangle.Bottom;
+                        newPos.Y = collider.Rectangle.Top - Rectangle.Height/2 - 1;
                         _velocity.Y = 0;
                         _velocity.X = 0;
                     }
                 }
             }
             Position = newPos;
-            _rect = Globals.Rectangle(20, 20, Position);
+            _rect = Globals.Rectangle(10 + 2 * Value, 10 + 2 * Value, Position);
             _rectDraw = _rect;
             _rectDraw.Y = _rect.Y + _upDown;
             if (_time >= _animationSpeed)

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Security;
 using System.Text;
 using static Platformer.Enemy;
 
@@ -54,11 +55,11 @@ namespace Platformer
             return level;
         }
 
-        
+        private Random _gen = new Random();
         public Tile[,] Tiles;
         private Texture2D _soilTexture = Globals.Content.Load<Texture2D>("Soil");
         private Texture2D _soil2Texture = Globals.Content.Load<Texture2D>("SoilClean");
-        public int width = 80;
+        private int tileSize = Globals.TileSize;
         public List<Enemy> Enemies = new List<Enemy>();
         public UserInterface UserInterface { get; set; } = new UserInterface();
         public bool Clickable()
@@ -68,8 +69,8 @@ namespace Platformer
                 && !UserInterface.Menurect.Contains(InputManager.MouseRectangle)&&
                 !Shop.Rectangle(Shop.Width,Shop.Height).Contains(InputManager.MouseRectangle);
         }
-        public Vector2 MaptoScreen(int x, int y) => new(x * width, y * width);
-        public (int x, int y) ScreentoMap (Vector2 position)=> ((int)position.X/width,(int)position.Y/width);
+        public Vector2 MaptoScreen(int x, int y) => new(x * tileSize, y * tileSize);
+        public (int x, int y) ScreentoMap (Vector2 position)=> ((int)position.X/ tileSize, (int)position.Y/ tileSize);
         public Map()
         {
 
@@ -84,7 +85,7 @@ namespace Platformer
             Money = 0;
             Shop = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
-            AddBorder(160, 100 * 80);
+            AddBorder(2* tileSize, 100 * tileSize);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
             for (int y = 0; y < map.GetLength(1); y++)
             {
@@ -119,10 +120,10 @@ namespace Platformer
         private void AddBorder(int width, int length)
         {
 
-            Rectangle westwall = new Rectangle(80 - width, 80, width, length);
-            Rectangle eastwall = new Rectangle(80+length, 80, width, length);
-            Rectangle northwall = new Rectangle(80, 80 - width, length, width);
-            Rectangle southwall = new Rectangle(80, 80+length, length, width);
+            Rectangle westwall = new Rectangle(tileSize - width, tileSize, width, length);
+            Rectangle eastwall = new Rectangle(tileSize +length, tileSize, width, length);
+            Rectangle northwall = new Rectangle(tileSize, tileSize - width, length, width);
+            Rectangle southwall = new Rectangle(tileSize, tileSize +length, length, width);
             Borders.Add(westwall);
             Borders.Add(eastwall);
             Borders.Add(northwall);
@@ -163,7 +164,29 @@ namespace Platformer
             foreach (Treasure treasure in Treasures)
             {
                 treasure.Update(displacement, Tiles);
-                //if ()
+                if (!treasure.Opened&&Player.Attacking && Player.AttackRange().Intersects(treasure.Rectangle))
+                {
+                    treasure.Opened = true;
+                    treasure.Time = 0;
+                }
+                else if (treasure.Opened)
+                {
+                    if (treasure.Time >= 0.05f)
+                    {
+                        treasure.Time = 0;
+                        treasure.Opacity -= 0.1f;
+                        Coin coin = new Coin(Globals.Content.Load<Texture2D>("coin"), treasure.Position, 5*_gen.Next(1,3));
+                        Coins.Add(coin);
+                    }
+                }
+            }
+            for (int i = 0; i < Treasures.Count; i++)
+            {
+                if (Treasures[i].Opacity <= 0)
+                {
+                    Treasures.RemoveAt(i);
+                    i--;
+                }
             }
             for (int i = 0; i < Borders.Count; i++)
             {
@@ -173,7 +196,7 @@ namespace Platformer
             {
                 if (Enemies[i].Died)
                 {
-                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Enemies[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y),5);
+                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Enemies[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y), 5 * _gen.Next(1, 3));
                     Coins.Add(coin);
                     Enemies.RemoveAt(i);
                     i--;
@@ -359,7 +382,7 @@ namespace Platformer
                 tile.Draw();
             }
             if (DrawItem&&UserInterface.MouseState == "enemy")
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Dog1"), Globals.Rectangle(80,80,new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Dog1"), Globals.Rectangle(tileSize,tileSize,new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
                     ,new Color(Color.White, 0.2f));
             if (DrawItem && UserInterface.MouseState == "treasure")
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("treasure"), Globals.Rectangle(60,45, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))

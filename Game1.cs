@@ -39,7 +39,7 @@ namespace Platformer
             _graphics.PreferredBackBufferWidth = Globals.WindowSize.X;
             _graphics.PreferredBackBufferHeight = Globals.WindowSize.Y;
             _graphics.ApplyChanges();
-
+            Globals.TileSize = Globals.WindowSize.X / 8;
             Globals.Content = Content;
 
             screen = Screen.intro;

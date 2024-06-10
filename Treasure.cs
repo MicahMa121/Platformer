@@ -2,11 +2,12 @@
 {
     public class Treasure
     {
+        public float Time { get; set; }
         public Texture2D Texture { get; set; }
         public Vector2 Position { get; set; }
         public Rectangle Rectangle { get; set; }
         private Vector2 _velocity;
-        private float _opacity = 1f;
+        public float Opacity = 1f;
         public bool Opened { get; set; }= false;
         public Treasure(Texture2D texture, Vector2 position)
         {
@@ -17,7 +18,10 @@
         }
         public void Update(Vector2 displacement, Tile[,] tiles)
         {
-            
+            if (Opened)
+            {
+                Time += Globals.Time;
+            }
             Position += displacement;
             //movement
             _velocity.Y += Globals.Gravity;
@@ -45,7 +49,7 @@
         }
         public void Draw()
         {
-            Globals.SpriteBatch.Draw(Texture, Rectangle, Color.White);
+            Globals.SpriteBatch.Draw(Texture, Rectangle, new Color(Color.White,Opacity));
         }
     }
 }
