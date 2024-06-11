@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.IO;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Platformer
 {
@@ -31,9 +32,9 @@ namespace Platformer
             Settingrect = Rectangle(40,40, new(600, 600));
             UIrect = Rectangle(0,0, Origin);
             Menurect = Rectangle(0,0, Origin);
-            NewGameBtn = new(Origin - new Vector2(0, 200), "New Game");
+            NewGameBtn = new(Origin - new Vector2(0, Globals.WindowSize.Y/640*200), "New Game");
             Buttons.Add(NewGameBtn);
-            EditLevelBtn =  new(Origin - new Vector2(0, 80), "Edit Level");
+            EditLevelBtn = new(NewGameBtn.Position + new Vector2(0, (int)Globals.Font.MeasureString("0").Y * 2), "Edit Level");
             Buttons.Add(EditLevelBtn);
             SaveEditBtn = new(Origin - new Vector2(0, 120), "Save Edit");
             Buttons.Add(SaveEditBtn);

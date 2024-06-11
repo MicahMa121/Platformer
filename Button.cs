@@ -31,7 +31,7 @@ namespace Platformer
             Position = pos;
             Text = text;
             Width = (int)Globals.Font.MeasureString(text).X*3/2;
-            Height = (int)Globals.Font.MeasureString(text).Y*2;
+            Height = (int)Globals.Font.MeasureString(text).Y;
         }
         public void Update()
         {

@@ -169,6 +169,16 @@
 /processorParam:TextureFormat=Color
 /build:MountainBackground.png
 
+#begin pixelfont.ttf
+/copy:pixelfont.ttf
+
+#begin pixelSpriteFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:pixelSpriteFont.spritefont
+
 #begin rectangle.png
 /importer:TextureImporter
 /processor:TextureProcessor

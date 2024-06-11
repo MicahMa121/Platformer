@@ -115,15 +115,15 @@ namespace Platformer
             }
         }
         public Character Player { get; set; } 
-        public List<Rectangle> Borders { get; set; } = new List<Rectangle> ();
+        public List<Border> Borders { get; set; } = new List<Border> ();
         public int Money { get; set; }
         private void AddBorder(int width, int length)
         {
 
-            Rectangle westwall = new Rectangle(tileSize - width, tileSize, width, length);
-            Rectangle eastwall = new Rectangle(tileSize +length, tileSize, width, length);
-            Rectangle northwall = new Rectangle(tileSize, tileSize - width, length, width);
-            Rectangle southwall = new Rectangle(tileSize, tileSize +length, length, width);
+            Border westwall = new(new Rectangle(tileSize - width, tileSize, width, length));
+            Border eastwall = new(new Rectangle(tileSize +length, tileSize, width, length));
+            Border northwall = new(new Rectangle(tileSize, tileSize - width, length, width));
+            Border southwall = new(new Rectangle(tileSize, tileSize + length, length, width));
             Borders.Add(westwall);
             Borders.Add(eastwall);
             Borders.Add(northwall);
@@ -133,7 +133,19 @@ namespace Platformer
         public Button Shop { get; set; } 
         public void Update(Vector2 displacement)
         {
-
+            for (int i = 0; i < DamageTexts.Count; i++)
+            {
+                DamageTexts[i].Update(displacement);
+                if (DamageTexts[i].Opacity<= 0f)
+                {
+                    DamageTexts.RemoveAt(i);
+                    i--;
+                }
+            }
+            foreach(var border in Borders)
+            {
+                border.Update(displacement);
+            }
             foreach(var coin in Coins)
             {
                 coin.Update(displacement, Tiles);
@@ -156,7 +168,6 @@ namespace Platformer
             }
             foreach (var tile in Tiles)
             {
-                if (tile == null) continue;
                 tile.Position += displacement;
                 tile.Rectangle =  new((int)tile.Position.X, (int)tile.Position.Y, tile.Rectangle.Width, tile.Rectangle.Height);
                 
@@ -188,9 +199,9 @@ namespace Platformer
                     i--;
                 }
             }
-            for (int i = 0; i < Borders.Count; i++)
+            foreach(var border in Borders)
             {
-                Borders[i] = new Rectangle(Borders[i].X + (int)displacement.X, Borders[i].Y+ (int)displacement.Y, Borders[i].Width, Borders[i].Height);
+
             }
             for (int i = 0; i <Enemies.Count; i++)
             {
@@ -216,16 +227,22 @@ namespace Platformer
                         {
                             if (enemy._spriteEffect != Player.SpriteEffect)
                             {
-                                enemy.Health -= 20;
+                                enemy.Health -= Player.Atk*2;
+                                DamageText text = new(Convert.ToString(Player.Atk * 2), new(enemy.Rectangle.Center.X,enemy.Position.Y), Color.Yellow);
+                                DamageTexts.Add(text);
                             }
                             else
                             {
-                                enemy.Health -= 5;
+                                enemy.Health -= Player.Atk;
+                                DamageText text = new(Convert.ToString(Player.Atk ), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Yellow);
+                                DamageTexts.Add(text);
                             }
 
                             enemy.Hurt = true;
                             enemy.States = EnemyStates.Hurt;
                             enemy.Speed = 0;
+
+
                         }
 
                     }
@@ -238,14 +255,22 @@ namespace Platformer
                             enemy._count = 0;
                             enemy.Speed = 0;
                         }
-                        else
+                        else if (!Player.Dashing)
                         {
                             Player.States = Character.CharacterStates.Hurt;
                             Player.Hurt = true;
                             Player.Idle = false;
                             Player.Attacking = false;
                             Player.Jumped = false;
+                            Player.Casting = false;
                             Player.Health -= 5;
+                            DamageText text = new(Convert.ToString(5), new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
+                            DamageTexts.Add(text);
+                        }
+                        else if (Player.Dashing)
+                        {
+                            DamageText text = new("Dodge", new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
+                            DamageTexts.Add(text);
                         }
                     }
                 }
@@ -372,6 +397,7 @@ namespace Platformer
                 }
             }
         }
+        public List<DamageText> DamageTexts { get; set; } = new List<DamageText>();
         public List<Treasure> Treasures { get; set; } = new List<Treasure>();
         public bool DrawItem { get; set; } = false;
         public void Draw()
@@ -398,6 +424,10 @@ namespace Platformer
             foreach (var coin in Coins)
             {
                 coin.Draw() ;
+            }
+            foreach (var text in DamageTexts)
+            {
+                text.Draw();
             }
             Shop.Draw();
         }

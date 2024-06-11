@@ -1,5 +1,7 @@
 ﻿
 
+using System.Diagnostics;
+
 namespace Platformer
 {
     public class Character //https://craftpix.net/freebies/free-3-character-sprite-sheets-pixel-art/
@@ -91,6 +93,9 @@ namespace Platformer
         public bool Attacking { get; set; } = false;
         public bool CanMove { get; set; } = true;
         public float Stamina { get; set; } 
+        public bool Casting { get; set; } = false;
+        public bool Dashing { get; set; } = false;
+        public float Atk { get; set; } = 5;
         public void Update(Map map)
         {
             //Textures
@@ -103,6 +108,11 @@ namespace Platformer
                 {
                     Stamina = Globals.TileSize;
                 }
+                if (_count >= 3)
+                {
+                    Dashing = false;
+                    Color = Color.White;
+                }
                 if (_count >= Textures[(int)States].Count)
                 {
                     if (States == CharacterStates.Jump&&_velocity.Y>= 0)
@@ -112,6 +122,21 @@ namespace Platformer
                     if (States == CharacterStates.Attack1)
                     {
                         Attacking = false;
+                    }
+                    if (States == CharacterStates.Craft)
+                    {
+                        Casting = false;
+                        Vector2 slashV = Vector2.Zero;
+                        if (RightDirection)
+                        {
+                            slashV = new Vector2(Speed * 2, 0);
+                        }
+                        else
+                        {
+                            slashV = new Vector2(-Speed * 2, 0);
+                        }
+                        Slash slash = new Slash(Globals.Content.Load<Texture2D>("Slash"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), slashV, SpriteEffect);
+                        slashes.Add(slash);
                     }
                     if (States == CharacterStates.Attack2)
                     {
@@ -123,6 +148,8 @@ namespace Platformer
                         Hurt = false;
                     }
                     _count = 0;
+
+                    Speed = 5;
                 }
                 Texture = Textures[(int)States][_count];
                 _count++;
@@ -131,7 +158,7 @@ namespace Platformer
             }
 
             _velocity.X = 0;
-            if (!Jumped && !Attacking&& !Hurt)
+            if (!Jumped && !Attacking&& !Hurt&&!Casting&&!Dashing)
                 Idle = true;
             //_grounded = false;
             //States
@@ -140,7 +167,7 @@ namespace Platformer
                 if (InputManager.IsKeyPressed(Keys.D))
                 {
                     _velocity.X = Speed;
-                    if (!Jumped && !Attacking&&!Hurt)
+                    if (!Jumped && !Attacking&&!Hurt&&!Casting)
                         States = CharacterStates.Run;
                     if (!RightDirection)
                     {
@@ -152,7 +179,7 @@ namespace Platformer
                 else if (InputManager.IsKeyPressed(Keys.A))
                 {
                     _velocity.X = -Speed;
-                    if (!Jumped && !Attacking && !Hurt)
+                    if (!Jumped && !Attacking && !Hurt && !Casting)
                         States = CharacterStates.Run;
                     if (RightDirection)
                     {
@@ -161,22 +188,55 @@ namespace Platformer
                     }
                     Idle = false;
                 }
-                if (InputManager.IsKeyClicked(Keys.E))
+                else if (Dashing)
                 {
-                    States = CharacterStates.Attack3;
-                    Slash slash = new Slash(Globals.Content.Load<Texture2D>("Slash"), Position, new(5, 0));
-                    slashes.Add(slash);
+                    if (RightDirection)
+                    {
+                        _velocity.X = Speed;
+                    }
+                    else
+                    {
+                        _velocity.X = -Speed;
+                    }
+                }
+                if (InputManager.IsKeyClicked(Keys.E) && Stamina >= 20f)
+                {
+                    if (!Casting)
+                    {
+                        _count = 0;
+                        States = CharacterStates.Craft;
+                        Idle = false;
+                        Casting = true;
+                        Hurt = false;
+                        Attacking = false;
+                        Jumped = false;
+                        Stamina -= 20;
+                    }
+                }
+                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 20f&&!Dashing)
+                {
+                    Dashing = true;
+                    Speed = 10;
+                    Idle = false;   
+                    Casting = false;
+                    Hurt = false;
+                    Attacking = false;
+                    Jumped = false;
+                    States = CharacterStates.Run;
+                    Color = new Color(Color.White, 0.5f);
+                    _count = 0;
+                    Stamina -= 20;
                 }
                 if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
                 {
                     _velocity.Y = - 15;
-                    _grounded = false;
                     States = CharacterStates.Jump;
                     Stamina -= 20;
                     Idle = false;
                     Jumped = true;
                     Attacking = false;
                     Hurt = false;
+                    Casting = false;
                 }
                 if (InputManager.IsKeyClicked(Keys.Space))
                 {
@@ -188,12 +248,14 @@ namespace Platformer
                         States = CharacterStates.Attack2;
                         Idle = false;
                         Attacking = true;
+                        Casting = false;
                     }
                     else
                     {
                         States = CharacterStates.Attack1;
                         Idle = false;
                         Attacking = true;
+                        Casting = false;
                     }
                     Hurt = false;
                 }
@@ -206,8 +268,6 @@ namespace Platformer
                 Rectangle newHitbox = Hitbox(newPos);
                 foreach (Tile collider in map.Tiles)
                 {
-                    if (Hitbox(Position).Intersects(collider.Rectangle)) { collider.IsPlayerHere = true; continue; }
-                    else { collider.IsPlayerHere = false; }
                     if (!collider.Visible) continue;
 
                     newHitbox = Hitbox(new(newPos.X, Position.Y));
@@ -219,10 +279,9 @@ namespace Platformer
                     newHitbox = Hitbox(new(Position.X, newPos.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
-                        if (_velocity.Y >= 0)
+                        if (_velocity.Y > 0)
                         {
                             newPos.Y = collider.Rectangle.Top - Rectangle.Height;
-                            _grounded = true;
                             _velocity.Y = 0;
                         }
                         else if (_velocity.Y < 0)
@@ -231,28 +290,27 @@ namespace Platformer
                         }
                     }
                 }
-                foreach (Rectangle collider in map.Borders)
+                foreach (Border collider in map.Borders)
                 {
                     if (newPos.X != Position.X)
                     {
                         newHitbox = Hitbox(new(newPos.X, Position.Y));
-                        if (newHitbox.Intersects(collider))
+                        if (newHitbox.Intersects(collider.Rectangle))
                         {
                             newPos.X = Position.X;
                         }
                     }
                     newHitbox = Hitbox(new(Position.X, newPos.Y));
-                    if (newHitbox.Intersects(collider))
+                    if (newHitbox.Intersects(collider.Rectangle))
                     {
                         if (_velocity.Y >= 0)
                         {
-                            newPos.Y = collider.Top - 80;
-                            _grounded = true;
+                            newPos.Y = collider.Rectangle.Top - Rectangle.Height;
                             _velocity.Y = 0;
                         }
                         else if (_velocity.Y < 0)
                         {
-                            newPos.Y = collider.Bottom - 20;
+                            newPos.Y = collider.Rectangle.Bottom - (Rectangle.Height - 1 - newHitbox.Height);
                         }
                     }
                 }
@@ -289,12 +347,11 @@ namespace Platformer
                     }
                 }
             }
-
+            //Debug.WriteLine("y velocity " + _velocity.Y);
         }
         public Vector2 MapDisplacement { get; set; }
         public int Speed { get; set; } = 5;
         private Vector2 _velocity;
-        private bool _grounded = true;
         public Rectangle Hitbox(Vector2 pos)
         {
             return new((int)pos.X + 30, (int)pos.Y +22, 20, 57);
