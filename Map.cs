@@ -78,6 +78,7 @@ namespace Platformer
         }
         public void NewGame()
         {
+            Portals.Clear();
             Coins.Clear();
             Borders.Clear();
             Treasures.Clear();
@@ -108,8 +109,13 @@ namespace Platformer
                     }
                     if (map[x, y] == 3)
                     {
-                        Treasure treasure = new(Globals.Content.Load<Texture2D>("treasure"), MaptoScreen(x, y)+new Vector2(40,40));
+                        Treasure treasure = new(Globals.Content.Load<Texture2D>("treasure"), MaptoScreen(x, y)+new Vector2(Globals.TileSize/2, Globals.TileSize / 2));
                         Treasures.Add(treasure);
+                    }
+                    if (map[x,y] == 4)
+                    {
+                        Portal portal = new(Globals.Content.Load<Texture2D>("PortalTex"), MaptoScreen(x, y) + new Vector2(Globals.TileSize / 2, Globals.TileSize / 2));
+                        Portals.Add(portal);
                     }
                 }
             }
@@ -130,6 +136,8 @@ namespace Platformer
             Borders.Add (southwall);
         }
         public List<Coin> Coins { get; set; } = new List<Coin> ();
+        public List<Portal> Portals { get; set; } = new List<Portal> ();
+        public List<Image> Trails { get; set; } = new List<Image> ();
         public Button Shop { get; set; } 
         public void Update(Vector2 displacement)
         {
@@ -141,6 +149,19 @@ namespace Platformer
                     DamageTexts.RemoveAt(i);
                     i--;
                 }
+            }
+            for (int i = 0; i < Trails.Count; i++)
+            {
+                Trails[i].Update();
+                if (Trails[i].Opacity <= 0f)
+                {
+                    Trails.RemoveAt(i);
+                    i--;
+                }
+            }
+            foreach (var portal in Portals)
+            {
+                portal.Update(displacement);
             }
             foreach(var border in Borders)
             {
@@ -199,10 +220,6 @@ namespace Platformer
                     i--;
                 }
             }
-            foreach(var border in Borders)
-            {
-
-            }
             for (int i = 0; i <Enemies.Count; i++)
             {
                 if (Enemies[i].Died)
@@ -242,7 +259,6 @@ namespace Platformer
                             enemy.States = EnemyStates.Hurt;
                             enemy.Speed = 0;
 
-
                         }
 
                     }
@@ -263,14 +279,16 @@ namespace Platformer
                             Player.Attacking = false;
                             Player.Jumped = false;
                             Player.Casting = false;
-                            Player.Health -= 5;
-                            DamageText text = new(Convert.ToString(5), new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
+                            Player.Health -= enemy.Atk;
+                            DamageText text = new(Convert.ToString(enemy.Atk), new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
                             DamageTexts.Add(text);
+                            Player.Dodge = false;
                         }
                         else if (Player.Dashing)
                         {
-                            DamageText text = new("Dodge", new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
-                            DamageTexts.Add(text);
+                            Player.Dodge = true;
+                            Image image = new(Player.Texture,new Rectangle((int)Player.Position.X,(int)Player.Position.Y,Player.Rectangle.Width,Player.Rectangle.Height),Player.SpriteEffect);
+                            Trails.Add(image);
                         }
                     }
                 }
@@ -393,7 +411,32 @@ namespace Platformer
                 else
                 {
                     DrawItem = false;
-
+                }
+            }
+            if (UserInterface.MouseState == "portal")
+            {
+                bool Add = true;
+                for (int i = 0; i < Portals.Count; i++)
+                {
+                    if (Clickable() && Portals[i].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                    {
+                        Portals.RemoveAt(i);
+                        i--;
+                        Add = false;
+                    }
+                }
+                if (Clickable() && !IsTouchingSoil)
+                {
+                    DrawItem = true;
+                    if (InputManager.MouseClicked && Add)
+                    {
+                        Portal portal = new(Globals.Content.Load<Texture2D>("PortalTex"), new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y));
+                        Portals.Add(portal);
+                    }
+                }
+                else
+                {
+                    DrawItem = false;
                 }
             }
         }
@@ -413,6 +456,14 @@ namespace Platformer
             if (DrawItem && UserInterface.MouseState == "treasure")
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("treasure"), Globals.Rectangle(60,45, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
                     , new Color(Color.White, 0.2f));
+            foreach (var image in Trails)
+            {
+                image.Draw();
+            }
+            foreach (Portal portal in Portals)
+            {
+                portal.Draw();
+            }
             foreach (Enemy enemy in Enemies)
             {
                 enemy.Draw();

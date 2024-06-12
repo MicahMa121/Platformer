@@ -80,7 +80,7 @@ namespace Platformer
                     spritesheet.GetData(0, sourceRect, data, 0, data.Length);
                     cropTexture.SetData(data);
 
-                    if (List.Count < w)
+                    if (List.Count <= w)
                     {
                         List.Add(cropTexture);
                     }
@@ -96,6 +96,7 @@ namespace Platformer
         public bool Casting { get; set; } = false;
         public bool Dashing { get; set; } = false;
         public float Atk { get; set; } = 5;
+        public bool Dodge { get; set; } = false;
         public void Update(Map map)
         {
             //Textures
@@ -148,7 +149,6 @@ namespace Platformer
                         Hurt = false;
                     }
                     _count = 0;
-
                     Speed = 5;
                 }
                 Texture = Textures[(int)States][_count];
@@ -230,13 +230,16 @@ namespace Platformer
                 if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
                 {
                     _velocity.Y = - 15;
-                    States = CharacterStates.Jump;
+
                     Stamina -= 20;
-                    Idle = false;
-                    Jumped = true;
-                    Attacking = false;
-                    Hurt = false;
-                    Casting = false;
+                    if (!Casting)
+                    {
+                        States = CharacterStates.Jump;
+                        Idle = false;
+                        Jumped = true;
+                        Attacking = false;
+                        Hurt = false;
+                    }
                 }
                 if (InputManager.IsKeyClicked(Keys.Space))
                 {

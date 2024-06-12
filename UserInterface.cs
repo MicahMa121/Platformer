@@ -1,7 +1,6 @@
 ﻿
 using System;
 using System.IO;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Platformer
 {
@@ -25,7 +24,7 @@ namespace Platformer
         public Button LevelBtn;
         public Button GravityBtn; 
         public bool EditOpen = false;
-        public Rectangle Soil, Enemy, Treasure;
+        public Rectangle Soil, Enemy, Treasure,Portal;
         public UserInterface()
         {
             MouseState = null;
@@ -34,17 +33,18 @@ namespace Platformer
             Menurect = Rectangle(0,0, Origin);
             NewGameBtn = new(Origin - new Vector2(0, Globals.WindowSize.Y/640*200), "New Game");
             Buttons.Add(NewGameBtn);
-            EditLevelBtn = new(NewGameBtn.Position + new Vector2(0, (int)Globals.Font.MeasureString("0").Y * 2), "Edit Level");
+            EditLevelBtn = new(NewGameBtn.Position + new Vector2(0, NewGameBtn.Height*4/3), "Edit Level");
             Buttons.Add(EditLevelBtn);
-            SaveEditBtn = new(Origin - new Vector2(0, 120), "Save Edit");
+            SaveEditBtn = new(NewGameBtn.Position + new Vector2(0, NewGameBtn.Height * 4 / 3*2), "Save Edit");
             Buttons.Add(SaveEditBtn);
-            LevelBtn = new(Origin - new Vector2(0, 160), "Level  "+ Globals.Level);
+            LevelBtn = new(NewGameBtn.Position + new Vector2(0, NewGameBtn.Height * 4 / 3*3), "Level  "+ Globals.Level);
             Buttons.Add(LevelBtn);
-            GravityBtn = new(Origin - new Vector2(0, 40), "Gravity:  " + Globals.Gravity);
+            GravityBtn = new(NewGameBtn.Position + new Vector2(0, NewGameBtn.Height * 4 / 3*4), "Gravity:  " + Globals.Gravity);
             Buttons.Add(GravityBtn);
             Soil = Rectangle(80, 80, new Vector2(Origin.X - 150, 570));
             Enemy = Rectangle(80, 80, new Vector2(Origin.X - 50, 570));
             Treasure = Rectangle(60,45, new Vector2(Origin.X + 50, 570));
+            Portal = Rectangle(80,80, new Vector2(Origin.X + 150, 570));
             PreviousLevel = 1;
         }
         public int PreviousLevel { get; set; }
@@ -171,6 +171,10 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                 {
                     MouseState = "treasure";
                 }
+                else if (Portal.Contains(InputManager.MouseRectangle))
+                {
+                    MouseState = "portal";
+                }
             }
         }
         public void Draw()
@@ -192,6 +196,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Soil"), Soil, Color.White);
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Dog1"), Enemy, Color.White);
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("treasure"), Treasure, Color.White);
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("portal"), Portal, Color.White);
             }
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("setting"), Settingrect, Color.White);
         }

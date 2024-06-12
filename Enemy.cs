@@ -7,13 +7,12 @@ namespace Platformer
     {
         private float _time;
         private float _animationSpeed;
-        private Random _gen = new Random();
         public Texture2D Texture { get; set; }
         public Vector2 Position { get; protected set; }
         public Vector2 Origin { get; protected set; }
         public Color Color { get; set; } = Color.White;
         public Rectangle Rectangle { get; set; }
-
+        public float Atk { get; set; } = 5f;
         
 
 
@@ -72,7 +71,7 @@ namespace Platformer
                     spritesheet.GetData(0, sourceRect, data, 0, data.Length);
                     cropTexture.SetData(data);
 
-                    if (List.Count < w)
+                    if (List.Count <= w)
                     {
                         List.Add(cropTexture);
                     }
@@ -222,28 +221,6 @@ namespace Platformer
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, _spriteEffect, 0f);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, 80, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10), Color.Green);
-        }
-        private Texture2D FlipTexture(Texture2D texture)
-        {
-            int width = texture.Width;
-            int height = texture.Height;
-            Rectangle sourceRect = new Rectangle(0, 0, texture.Width, texture.Height);
-            Color[] data = new Color[texture.Width * texture.Height];
-            texture.GetData(0, sourceRect, data, 0, data.Length);
-            Texture2D snap = new Texture2D(Globals.Device, width, height);
-            Color[] pixelsFlipped = new Color[data.Length];
-
-            for (int i = 0; i < height; i++)
-            {
-                for (int j = 0; j < width; j++)
-                {
-                    Array.Copy(data, j + i * width, pixelsFlipped, i * width + (width - j - 1), 1);
-                }
-
-            }
-
-            snap.SetData(pixelsFlipped);
-            return snap;
         }
     }
 }

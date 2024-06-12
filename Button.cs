@@ -31,12 +31,12 @@ namespace Platformer
             Position = pos;
             Text = text;
             Width = (int)Globals.Font.MeasureString(text).X*3/2;
-            Height = (int)Globals.Font.MeasureString(text).Y;
+            Height = (int)Globals.Font.MeasureString(text).Y*3/2;
         }
         public void Update()
         {
             Width = (int)Globals.Font.MeasureString(Text).X * 3 / 2;
-            Height = (int)Globals.Font.MeasureString(Text).Y * 2;
+            Height = (int)Globals.Font.MeasureString(Text).Y *3/2;
             if (Rectangle(Width,Height).Contains(InputManager.MouseRectangle))
             {
                 if (InputManager.MouseDown)

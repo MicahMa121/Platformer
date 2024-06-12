@@ -36,7 +36,7 @@ namespace Platformer
                     spritesheet.GetData(0, sourceRect, data, 0, data.Length);
                     cropTexture.SetData(data);
 
-                    if (List.Count < w)
+                    if (List.Count <= w)
                     {
                         List.Add(cropTexture);
                     }
