@@ -1,6 +1,7 @@
 ﻿
 
 using System.Diagnostics;
+using static Platformer.Enemy;
 
 namespace Platformer
 {
@@ -49,8 +50,8 @@ namespace Platformer
             Texture = Textures[(int)States][0];
             Origin = Vector2.Zero;//new(spritesheet.Width / 12, spritesheet.Height / 12);
             _time = 0;
-            Health = Globals.TileSize;
-            Stamina = Globals.TileSize;
+            Health = MaxStamina;
+            Stamina = MaxStamina;
             _animationSpeed = 0.1f;
             SpriteEffect = SpriteEffects.None;
             Textures[(int)CharacterStates.Hurt].Insert(1, Textures[(int)CharacterStates.Hurt][0]);
@@ -97,6 +98,8 @@ namespace Platformer
         public bool Dashing { get; set; } = false;
         public float Atk { get; set; } = 5;
         public bool Dodge { get; set; } = false;
+        public float MaxStamina { get; set; } = 100f;
+        public float MaxHp { get; set; } = 100f;
         public void Update(Map map)
         {
             //Textures
@@ -105,9 +108,9 @@ namespace Platformer
             if (_time >= _animationSpeed)
             {
                 Stamina += 3f;
-                if (Stamina >= Globals.TileSize)
+                if (Stamina >= MaxStamina)
                 {
-                    Stamina = Globals.TileSize;
+                    Stamina = MaxStamina;
                 }
                 if (_count >= 3)
                 {
@@ -136,7 +139,7 @@ namespace Platformer
                         {
                             slashV = new Vector2(-Speed * 2, 0);
                         }
-                        Slash slash = new Slash(Globals.Content.Load<Texture2D>("Slash"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), slashV, SpriteEffect);
+                        Slash slash = new Slash(Globals.Content.Load<Texture2D>("Slash"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), slashV, SpriteEffect,Globals.TileSize/2,Globals.TileSize/4);
                         slashes.Add(slash);
                     }
                     if (States == CharacterStates.Attack2)
@@ -155,6 +158,39 @@ namespace Platformer
                 _count++;
                 _time = 0;
 
+            }
+            foreach (Slash slash in slashes)
+            {
+                foreach (var enemy in map.Enemies)
+                {
+                    if (enemy.Dying) continue;
+                    if (!slash.Hit && slash.Rectangle.Intersects(enemy.Rectangle))
+                    {
+                        slash.Hit = true;
+                        enemy.Health -= map.Player.Atk * 4;
+                        DamageText text = new(Convert.ToString(map.Player.Atk * 4), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.AliceBlue);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy.States = EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                        break;
+                    }
+                }
+                foreach (var enemy in map.Scorpions)
+                {
+                    if (enemy.Dying) continue;
+                    if (!slash.Hit && slash.Rectangle.Intersects(enemy.Rectangle))
+                    {
+                        slash.Hit = true;
+                        enemy.Health -= map.Player.Atk * 4;
+                        DamageText text = new(Convert.ToString(map.Player.Atk * 4), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.AliceBlue);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                        break;
+                    }
+                }
             }
 
             _velocity.X = 0;
@@ -271,6 +307,14 @@ namespace Platformer
                 Rectangle newHitbox = Hitbox(newPos);
                 foreach (Tile collider in map.Tiles)
                 {
+                    if (newHitbox.Intersects(collider.Rectangle))
+                    {
+                        collider.IsPlayerHere = true;
+                    }
+                    else
+                    {
+                        collider.IsPlayerHere = false;
+                    }
                     if (!collider.Visible) continue;
 
                     newHitbox = Hitbox(new(newPos.X, Position.Y));
@@ -383,8 +427,8 @@ namespace Platformer
                 slash.Draw();
             }
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, Globals.TileSize, 10), Color.Red);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)Health, 10),Color.Green);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y+10, (int)Stamina, 2), Color.LightGoldenrodYellow);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)(Health/MaxHp*Globals.TileSize), 10),Color.Green);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y+10, (int)(Stamina/MaxStamina*Globals.TileSize), 2), Color.LightGoldenrodYellow);
         }
         private Texture2D FlipTexture(Texture2D texture)
         {

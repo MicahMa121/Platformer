@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Platformer
@@ -24,7 +25,8 @@ namespace Platformer
         public Button LevelBtn;
         public Button GravityBtn; 
         public bool EditOpen = false;
-        public Rectangle Soil, Enemy, Treasure,Portal;
+        public Image Soil, Enemy, Treasure,Portal;
+        public List<Image> Images = new List<Image>();
         public UserInterface()
         {
             MouseState = null;
@@ -41,10 +43,12 @@ namespace Platformer
             Buttons.Add(LevelBtn);
             GravityBtn = new(NewGameBtn.Position + new Vector2(0, NewGameBtn.Height * 4 / 3*4), "Gravity:  " + Globals.Gravity);
             Buttons.Add(GravityBtn);
-            Soil = Rectangle(80, 80, new Vector2(Origin.X - 150, 570));
-            Enemy = Rectangle(80, 80, new Vector2(Origin.X - 50, 570));
-            Treasure = Rectangle(60,45, new Vector2(Origin.X + 50, 570));
-            Portal = Rectangle(80,80, new Vector2(Origin.X + 150, 570));
+            int side = Globals.TileSize;
+            Soil = new(Globals.Content.Load<Texture2D>("Soil"), Rectangle(side,side, new Vector2(Origin.X - 150, 570)),SpriteEffects.None);
+            Enemy = new(Globals.Content.Load<Texture2D>("Dog1"), Rectangle(side, side, new Vector2(Origin.X - 50, 570)), SpriteEffects.None);
+            Treasure = new(Globals.Content.Load<Texture2D>("treasure"), Rectangle(60,45, new Vector2(Origin.X + 50, 570)), SpriteEffects.None);
+            Portal = new(Globals.Content.Load<Texture2D>("portal"), Rectangle(side, side, new Vector2(Origin.X + 150, 570)), SpriteEffects.None);
+            Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal);Images.Add(Soil); 
             PreviousLevel = 1;
         }
         public int PreviousLevel { get; set; }
@@ -160,6 +164,16 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                         continue;
                                     }
                                 }
+                                foreach (var scorpion in map.Scorpions)
+                                {
+                                    if (empty &&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)scorpion.Position.X, (int)scorpion.Position.Y, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('5');
+                                        continue;
+                                    }
+                                }
                             }
                             if (empty)
                                 writer.Write('0');
@@ -188,23 +202,24 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
             }
             if (InputManager.MouseClicked && EditOpen)
             {
-                if (Soil.Contains(InputManager.MouseRectangle))
+                if (Soil.Rectangle.Contains(InputManager.MouseRectangle))
                 {
                     MouseState = "soil";
                 }
-                else if (Enemy.Contains(InputManager.MouseRectangle))
+                else if (Enemy.Rectangle.Contains(InputManager.MouseRectangle))
                 {
                     MouseState = "enemy";
                 }
-                else if (Treasure.Contains(InputManager.MouseRectangle))
+                else if (Treasure.Rectangle.Contains(InputManager.MouseRectangle))
                 {
                     MouseState = "treasure";
                 }
-                else if (Portal.Contains(InputManager.MouseRectangle))
+                else if (Portal.Rectangle.Contains(InputManager.MouseRectangle))
                 {
                     MouseState = "portal";
                 }
             }
+            Debug.WriteLine(MouseState);
         }
         public void Draw()
         {
@@ -222,10 +237,11 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                 Globals.SpriteBatch.Draw(_tex, Menurect, Color.SaddleBrown);
                 Rectangle rect = Rectangle(Menurect.Width - Menurect.Height / 20, Menurect.Height - Menurect.Height / 20, new(Origin.X, 570));
                 Globals.SpriteBatch.Draw(_tex, rect, Color.SandyBrown);
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Soil"), Soil, Color.White);
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Dog1"), Enemy, Color.White);
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("treasure"), Treasure, Color.White);
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("portal"), Portal, Color.White);
+                foreach (var image in Images)
+                {
+                    if (image.Position.X <= Origin.X +110 && image.Position.X >= Origin.X - 190)
+                        image.Draw();
+                }
             }
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("setting"), Settingrect, Color.White);
         }

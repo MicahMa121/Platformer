@@ -4,6 +4,7 @@ namespace Platformer
     public class Tile
     {
         public Texture2D Texture { get; set; }
+        public (int x,int y) Location { get; set; }
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; } = Vector2.Zero;
         public Color Color { get; set; } = Color.White;
@@ -12,11 +13,12 @@ namespace Platformer
         public bool Visible { get; set; } = false;
         public bool Hover { get; set; } = false;
         public bool IsPlayerHere { get; set; } = false;
-        public Tile(Texture2D texture, Vector2 position)
+        public Tile(Texture2D texture, Vector2 position, (int x, int y) location)
         {
             Position = position;
-            Rectangle = new((int)Position.X, (int)Position.Y,texture.Width,texture.Height);
+            Rectangle = new((int)Position.X, (int)Position.Y, texture.Width, texture.Height);
             Texture = texture;
+            Location = location;
         }
         public void Draw()
         {

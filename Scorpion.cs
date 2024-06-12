@@ -1,6 +1,6 @@
 ﻿namespace Platformer
 {
-    public class Enemy
+    public class Scorpion
     {
         private float _time;
         private float _animationSpeed;
@@ -9,8 +9,8 @@
         public Vector2 Origin { get; protected set; }
         public Color Color { get; set; } = Color.White;
         public Rectangle Rectangle { get; set; }
-        public float Atk { get; set; } = 5f;
-        
+        public float Atk { get; set; } = 10f;
+
 
 
         public float Rotation { get; protected set; } = 0f;
@@ -28,14 +28,13 @@
         public EnemyStates States { get; set; }
         public bool RightDirection { get; set; } = true;
         public float Health { get; set; }
-        public float MaxHp { get; set; } = 50f;
-        public Enemy(Texture2D spritesheet, Vector2 position)
+        public float MaxHp { get; set; } = 25f;
+        public Scorpion(Texture2D spritesheet, Vector2 position)
         {
             _spriteEffect = SpriteEffects.None;
             Position = position;
-            Hitbox = ToHitbox(position);
-            Rectangle = new((int)Position.X, (int)Position.Y, spritesheet.Width / 5, spritesheet.Height / 5);
-            Textures = SpriteSheet(spritesheet, 5, 5);
+            Rectangle = new((int)Position.X, (int)Position.Y, spritesheet.Width / 4, spritesheet.Height / 5);
+            Textures = SpriteSheet(spritesheet, 4, 5);
             States = EnemyStates.Walk;
             Texture = Textures[(int)States][0];
             Origin = Vector2.Zero;
@@ -43,7 +42,7 @@
             _animationSpeed = 0.1f;
             _velocity.X = -Speed;
             Health = MaxHp;
-            for (int i = 0; i < 4; i++) 
+            for (int i = 0; i < 4; i++)
                 Textures[(int)EnemyStates.Hurt].Insert(0, Textures[(int)EnemyStates.Hurt][1]);
         }
         public static List<List<Texture2D>> SpriteSheet(Texture2D spritesheet, int w, int h)
@@ -55,11 +54,7 @@
                 int blanks = 0;
                 if (j == 2)
                 {
-                    blanks = 3;
-                }
-                else if (j == 3 )
-                {
-                    blanks = 1;
+                    blanks = 2;
                 }
                 for (int i = 0; i < w - blanks; i++)
                 {
@@ -83,15 +78,16 @@
         public bool IsAttacking { get; set; } = false;
         public bool Dying { get; set; } = false;
         public bool Died { get; set; } = false;
-        public void Update(Vector2 displacement, Tile[,] tiles,Character player)
+        public List<Slash> Slashes { get; set; } = new List<Slash>();
+        public void Update(Vector2 displacement, Tile[,] tiles, Character player)
         {
-            if (Health<= 0&&!Dying) 
-            { 
+            if (Health <= 0 && !Dying)
+            {
                 Dying = true;
                 States = EnemyStates.Death;
                 _count = 0;
             }
-            if (Dying )
+            if (Dying)
             {
                 _time += Globals.Time;
                 if (_time >= _animationSpeed)
@@ -103,7 +99,7 @@
                     }
                     else
                     {
-                                  Texture = Textures[(int)States][_count];          
+                        Texture = Textures[(int)States][_count];
                     }
                     _time = 0;
                 }
@@ -114,19 +110,18 @@
                 _velocity.X = -Speed;
                 _spriteEffect = SpriteEffects.None;
             }
-            else 
+            else
             {
                 _velocity.X = Speed;
                 _spriteEffect = SpriteEffects.FlipHorizontally;
             }
             //Textures
             _time += Globals.Time;
-            if (!IsAttacking&&!Hurt)
+            if (!Hurt&&!IsAttacking)
             {
                 States = EnemyStates.Walk;
                 Speed = 2;
             }
-
             if (_time >= _animationSpeed)
             {
                 _count++;
@@ -136,6 +131,7 @@
                     {
                         IsAttacking = false;
                         Hurt = false;
+                        //Slash slash = new Slash()
                     }
                     if (States == EnemyStates.Hurt)
                     {
@@ -156,20 +152,12 @@
             //collision
             Vector2 newPos = Position + _velocity;
             Rectangle newHitbox;
-            if (!IsAttacking && AttackRange().Intersects(player.Hitbox(player.Position)))
-            {
-                IsAttacking = true;
-                States = EnemyStates.Attack;
-                _count = 0;
-                Speed = 0;
-
-            }
             foreach (Tile collider in tiles)
             {
                 if (!collider.Visible) continue;
                 if (newPos.X != Position.X)
                 {
-                    newHitbox = ToHitbox(new(newPos.X, Position.Y));
+                    newHitbox = Hitbox(new(newPos.X, Position.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
                         newPos.X = Position.X;
@@ -177,12 +165,12 @@
                         RightDirection = !RightDirection;
                     }
                 }
-                newHitbox = ToHitbox(new(Position.X, newPos.Y));
+                newHitbox = Hitbox(new(Position.X, newPos.Y));
                 if (newHitbox.Intersects(collider.Rectangle))
                 {
                     if (_velocity.Y >= 0)
                     {
-                        newPos.Y = collider.Rectangle.Top - 67;
+                        newPos.Y = collider.Rectangle.Top - Globals.TileSize;
                         _velocity.Y = 0;
                     }
                     else if (_velocity.Y < 0)
@@ -192,36 +180,20 @@
                 }
             }
             Position = newPos;
-            Hitbox = ToHitbox(Position);
         }
         public int Speed { get; set; } = 2;
         private Vector2 _velocity;
         public bool Hurt { get; set; }
-        public Rectangle Hitbox { get; set; }
-        public Rectangle ToHitbox(Vector2 pos)
+        public Rectangle Hitbox(Vector2 pos)
         {
-            return new((int)pos.X+5, (int)pos.Y+20, 70, 47);
-        }
-        public Rectangle AttackRange()
-        {
-            int x;
-            if (RightDirection)
-            {
-                x = 65;
-            }
-            else
-            {
-                x = -15;
-            }
-            return new(Hitbox.Center.X-x, Hitbox.Y, 50, 47);
+            return new((int)pos.X + 20, (int)pos.Y + 33, 50, 47);
         }
         public void Draw()
         {
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox, Color.Red);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, _spriteEffect, 0f);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, Globals.TileSize, 10), Color.Red);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)(Health/MaxHp*Globals.TileSize), 10), Color.Green);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)(Health / MaxHp * Globals.TileSize), 10), Color.Green);
         }
     }
 }

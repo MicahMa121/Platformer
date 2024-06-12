@@ -12,20 +12,23 @@ namespace Platformer
         public Rectangle Rectangle { get { return rect; } }
         public bool Hit { get; set; }
         private SpriteEffects spriteEffects;
-        public Slash(Texture2D texture, Vector2 position, Vector2 velocity, SpriteEffects spriteEffects)
+        private int width,height;
+        public Slash(Texture2D texture, Vector2 position, Vector2 velocity, SpriteEffects spriteEffects,int w,int h)
         {
             this.texture = texture;
             this.position = position;
             this.velocity = velocity;
             Hit = false;
-            rect = Globals.Rectangle(Globals.TileSize / 2, Globals.TileSize / 2, position);
+            rect = Globals.Rectangle(w, h, position);
             this.spriteEffects = spriteEffects;
+            width = w;
+            height = h;
         }
         public void Update(Vector2 displacement,Map map)
         {
             position += displacement;
             position += velocity;
-            rect = Globals.Rectangle(Globals.TileSize / 2, Globals.TileSize / 2, position);
+            rect = Globals.Rectangle(width,height, position);
             foreach (var tile in map.Tiles)
             {
                 if (!tile.Visible) { continue; }
@@ -35,21 +38,7 @@ namespace Platformer
                     return;
                 }
             }
-            foreach (var enemy in map.Enemies)
-            {
-                if(enemy.Dying) continue;
-                if (!Hit&& rect.Intersects(enemy.Rectangle))
-                {
-                    Hit = true;
-                    enemy.Health -= map.Player.Atk * 4;
-                    DamageText text = new(Convert.ToString(map.Player.Atk*4), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.AliceBlue);
-                    map.DamageTexts.Add(text);
-                    enemy.Hurt = true;
-                    enemy.States = EnemyStates.Hurt;
-                    enemy.Speed = 0;
-                    return;
-                }
-            }
+
         }
         public void Draw()
         {
