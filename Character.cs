@@ -199,7 +199,7 @@ namespace Platformer
                         _velocity.X = -Speed;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.E) && Stamina >= 20f)
+                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 20f)
                 {
                     if (!Casting)
                     {

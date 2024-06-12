@@ -7,6 +7,7 @@ namespace Platformer
         private Texture2D _texture;
         private Vector2 _position;
         private Rectangle _rect;
+        public Vector2 Position { get { return _position; } }
         public Rectangle Rectangle { get { return _rect; } }
         public Portal(Texture2D spritesheet, Vector2 position)
         {

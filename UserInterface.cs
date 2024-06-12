@@ -52,6 +52,25 @@ namespace Platformer
         {
             foreach (Button button in Buttons)
                 button.Update();
+            if (InputManager.IsKeyClicked(Keys.E))
+            {
+                foreach (var portal in map.Portals)
+                {
+                    if (map.Player.Hitbox(map.Player.Position).Intersects(portal.Rectangle))
+                    {
+                        Globals.Level++;
+                        if (Globals.Level >= 5)
+                        {
+                            Globals.Level = 1;
+                        }
+                        LevelBtn.Text = "level " + Globals.Level;
+                        map.NewGame();
+                        map.Player.Health = 80;
+                        PreviousLevel = Globals.Level;
+                        break;
+                    }
+                }
+            }
             if (open)
             {
                 if (InputManager.MouseClicked &&
@@ -128,6 +147,16 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                     {
                                         empty = false;
                                         writer.Write('3');
+                                        continue;
+                                    }
+                                }
+                                foreach (var portal in map.Portals)
+                                {
+                                    if (empty &&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)portal.Position.X, (int)portal.Position.Y, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('4');
                                         continue;
                                     }
                                 }
