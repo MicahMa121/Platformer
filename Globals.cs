@@ -13,6 +13,7 @@ namespace Platformer
         public static SpriteFont Font { get; set; }
         public static float Gravity { get; set; } = 1;
         public static int TileSize { get; set; } 
+        public static bool Pause { get; set; } = false;
         public static void Update(GameTime gt)
         {
             Time = (float)gt.ElapsedGameTime.TotalSeconds;

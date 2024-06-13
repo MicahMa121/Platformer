@@ -1,4 +1,6 @@
-﻿namespace Platformer
+﻿using System;
+
+namespace Platformer
 {
     public class Scorpion
     {
@@ -16,7 +18,7 @@
         public float Rotation { get; protected set; } = 0f;
         public List<List<Texture2D>> Textures { get; set; }
 
-        public SpriteEffects _spriteEffect;
+        public SpriteEffects _spriteEffects;
         public enum EnemyStates
         {
             Attack,
@@ -31,7 +33,7 @@
         public float MaxHp { get; set; } = 25f;
         public Scorpion(Texture2D spritesheet, Vector2 position)
         {
-            _spriteEffect = SpriteEffects.None;
+            _spriteEffects = SpriteEffects.None;
             Position = position;
             Rectangle = new((int)Position.X, (int)Position.Y, spritesheet.Width / 4, spritesheet.Height / 5);
             Textures = SpriteSheet(spritesheet, 4, 5);
@@ -108,12 +110,12 @@
             if (RightDirection)
             {
                 _velocity.X = -Speed;
-                _spriteEffect = SpriteEffects.None;
+                _spriteEffects = SpriteEffects.None;
             }
             else
             {
                 _velocity.X = Speed;
-                _spriteEffect = SpriteEffects.FlipHorizontally;
+                _spriteEffects = SpriteEffects.FlipHorizontally;
             }
             //Textures
             _time += Globals.Time;
@@ -131,7 +133,17 @@
                     {
                         IsAttacking = false;
                         Hurt = false;
-                        //Slash slash = new Slash()
+                        Vector2 slashV = Vector2.Zero;
+                        if (!RightDirection)
+                        {
+                            slashV = new Vector2(10, 0);
+                        }
+                        else
+                        {
+                            slashV = new Vector2(-10, 0);
+                        }
+                        Slash slash = new Slash(Globals.Content.Load<Texture2D>("Arrow (1)"), new(Rectangle.Center.X, Hitbox(Position).Top), slashV, _spriteEffects, 40,20);
+                        Slashes.Add(slash);
                     }
                     if (States == EnemyStates.Hurt)
                     {
@@ -144,6 +156,7 @@
                 _time = 0;
 
             }
+
             //displacement
             Position += displacement;
             Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
@@ -180,6 +193,15 @@
                 }
             }
             Position = newPos;
+            for (int i = 0; i < Slashes.Count; i++)
+            {
+                Slashes[i].Update(displacement, tiles);
+                if (Slashes[i].Hit)
+                {
+                    Slashes.RemoveAt(i);
+                    i--;
+                }
+            }
         }
         public int Speed { get; set; } = 2;
         private Vector2 _velocity;
@@ -191,9 +213,13 @@
         public void Draw()
         {
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
-            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, _spriteEffect, 0f);
+            Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, _spriteEffects, 0f);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, Globals.TileSize, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)(Health / MaxHp * Globals.TileSize), 10), Color.Green);
+            foreach(var slash in Slashes)
+            {
+                slash.Draw();
+            }
         }
     }
 }

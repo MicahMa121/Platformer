@@ -67,7 +67,7 @@ namespace Platformer
         protected void GameRun()
         {
             player = new(Globals.Content.Load<Texture2D>("character"),
-         Globals.Content.Load<Texture2D>("character2 (1)"),
+         Globals.Content.Load<Texture2D>("maincharacter"),
          new(300,300));
             userInterface = new UserInterface();
             this.Window.Title = "about to load file";
@@ -111,14 +111,6 @@ namespace Platformer
                 foreach (Background background in backgrounds)
                 {
                     background.Update(player.MapDisplacement.X);
-                }
-                if (map.UserInterface.open)
-                {
-                    player.CanMove = false;
-                }
-                else if (!map.UserInterface.open)
-                {
-                    player.CanMove = true;
                 }
             }
             this.Window.Title = _graphics.PreferredBackBufferWidth.ToString() +" "+ Globals.WindowSize.X;

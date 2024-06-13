@@ -69,8 +69,9 @@ namespace Platformer
         {
             return !UserInterface.UIrect.Contains(InputManager.MouseRectangle)
                 && !UserInterface.Settingrect.Contains(InputManager.MouseRectangle)
-                && !UserInterface.Menurect.Contains(InputManager.MouseRectangle)&&
-                !Shop.Rectangle(Shop.Width,Shop.Height).Contains(InputManager.MouseRectangle);
+                && !UserInterface.Menurect.Contains(InputManager.MouseRectangle) &&
+                !Shop.Rectangle(Shop.Width, Shop.Height).Contains(InputManager.MouseRectangle)
+                ;
         }
         public Vector2 MaptoScreen(int x, int y) => new(x * tileSize, y * tileSize);
         public (int x, int y) ScreentoMap (Vector2 position)=> ((int)position.X/ tileSize, (int)position.Y/ tileSize);
@@ -148,6 +149,7 @@ namespace Platformer
         public List<Portal> Portals { get; set; } = new List<Portal> ();
         public List<Image> Trails { get; set; } = new List<Image> ();
         public Button Shop { get; set; } 
+        public Button Restart { get; set; }
         public void Update(Vector2 displacement)
         {
             for (int i = 0; i < DamageTexts.Count; i++)
@@ -166,6 +168,43 @@ namespace Platformer
                 {
                     Trails.RemoveAt(i);
                     i--;
+                }
+            }
+            if (Player.Health <= 0 && !Player.Reviving)
+            {
+                Player.Reviving = true;
+                Player.MapDisplacement = Vector2.Zero;
+                Player.States = Character.CharacterStates.Death;
+
+            }
+            if (Player.Death)
+            {
+                if (Restart == null)
+                {
+                    Restart = new(new(Globals.WindowSize.X / 2, 0), "Restart?");
+                }
+                else
+                {
+                    if (Restart.Position.Y >= Globals.WindowSize.Y/2)
+                    {
+                        Restart.Position = new(Globals.WindowSize.X / 2,Globals.WindowSize.Y / 2);
+                        Restart.Update();
+                        if (Restart.ButtonPressed())
+                        {
+                            NewGame();
+                            Player.Health = Player.MaxHp;
+                            Player.Death = false;
+                            Player.Reviving = false;
+                            Player.States = Character.CharacterStates.Idle;
+
+                            Restart = null;
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        Restart.Position += new Vector2(0,Globals.WindowSize.Y/60);
+                    }
                 }
             }
             foreach (var portal in Portals)
@@ -241,7 +280,7 @@ namespace Platformer
             }
             foreach (Enemy enemy in Enemies)
             {
-                if (UserInterface.open || UserInterface.EditOpen)
+                if (UserInterface.open|| UserInterface.EditOpen||Player.Reviving)
                 {
                     enemy.Speed = 0;
                 }
@@ -307,7 +346,7 @@ namespace Platformer
             {
                 if (Scorpions[i].Died)
                 {
-                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Scorpions[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y), 5 * _gen.Next(1, 3));
+                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Scorpions[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y), 5 * _gen.Next(1, 5));
                     Coins.Add(coin);
                     Scorpions.RemoveAt(i);
                     i--;
@@ -315,17 +354,40 @@ namespace Platformer
             }
             foreach (Scorpion scorpion in Scorpions)
             {
-                if (UserInterface.open || UserInterface.EditOpen)
+                if (UserInterface.open || UserInterface.EditOpen||Player.Reviving)
                 {
                     scorpion.Speed = 0;
                 }
                 else
                 {
+                    foreach (Slash slash in scorpion.Slashes)
+                    {
+                        if (!Player.Dashing && Player.Hitbox(Player.Position).Intersects(slash.Rectangle))
+                        {
+                            slash.Hit = true;
+                            Player.States = Character.CharacterStates.Hurt;
+                            Player.Hurt = true;
+                            Player.Idle = false;
+                            Player.Attacking = false;
+                            Player.Jumped = false;
+                            Player.Casting = false;
+                            Player.Health -= scorpion.Atk;
+                            DamageText text = new(Convert.ToString(scorpion.Atk), new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
+                            DamageTexts.Add(text);
+                            Player.Dodge = false;
+                        }
+                        else if (Player.Dashing)
+                        {
+                            Player.Dodge = true;
+                            Image image = new(Player.Texture, new Rectangle((int)Player.Position.X, (int)Player.Position.Y, Player.Rectangle.Width, Player.Rectangle.Height), Player.SpriteEffect);
+                            Trails.Add(image);
+                        }
+                    }
                     if (Player.Attacking && scorpion.Hitbox(scorpion.Position).Intersects(Player.AttackRange()))
                     {
                         if (!scorpion.Hurt)
                         {
-                            if (scorpion._spriteEffect != Player.SpriteEffect)
+                            if (scorpion._spriteEffects != Player.SpriteEffect)
                             {
                                 scorpion.Health -= Player.Atk * 2;
                                 DamageText text = new(Convert.ToString(Player.Atk * 2), new(scorpion.Rectangle.Center.X, scorpion.Position.Y), Color.Yellow);
@@ -350,7 +412,7 @@ namespace Platformer
                         int y = 0;
                         foreach (Tile tile in Tiles)
                         {
-                            if (tile.Rectangle.Contains(new Rectangle((int)scorpion.Position.X, (int)scorpion.Position.Y, 1, 1)))
+                            if (tile.Rectangle.Contains(new Rectangle((int)scorpion.Rectangle.Center.X, (int)scorpion.Rectangle.Center.Y, 1, 1)))
                             {
                                 x = tile.Location.x;
                                 y = tile.Location.y; break;
@@ -359,9 +421,14 @@ namespace Platformer
                         bool attack = false;
                         if (scorpion.RightDirection)
                         {
-                            for (int i = 0; i < 5; i++)
+                            for (int i = 1; i < 6; i++)
                             {
                                 if (x - i < 0) break;
+                                if (Tiles[x - i, y].Visible)
+                                {
+                                    attack = false;
+                                    break;
+                                }
                                 if (Tiles[x-i, y].IsPlayerHere)
                                 {
                                     attack = true;
@@ -371,9 +438,14 @@ namespace Platformer
                         }
                         else
                         {
-                            for (int i = 0; i < 5; i++)
+                            for (int i = 1; i < 6; i++)
                             {
                                 if (x + i >102) break;
+                                if (Tiles[x + i, y].Visible)
+                                {
+                                    attack = false;
+                                    break;
+                                }
                                 if (Tiles[x+i, y ].IsPlayerHere)
                                 {
                                     attack = true;
@@ -537,6 +609,32 @@ namespace Platformer
                     DrawItem = false;
                 }
             }
+            if (UserInterface.MouseState == "scorpion")
+            {
+                bool Add = true;
+                for (int i = 0; i < Scorpions.Count; i++)
+                {
+                    if (Clickable() && Scorpions[i].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                    {
+                        Scorpions.RemoveAt(i);
+                        i--;
+                        Add = false;
+                    }
+                }
+                if (Clickable() && !IsTouchingSoil)
+                {
+                    DrawItem = true;
+                    if (InputManager.MouseClicked && Add)
+                    {
+                        Scorpion scorpion = new(Globals.Content.Load<Texture2D>("scorpionTex"), new(InputManager.MouseRectangle.X-40, InputManager.MouseRectangle.Y-40));
+                        Scorpions.Add(scorpion);
+                    }
+                }
+                else
+                {
+                    DrawItem = false;
+                }
+            }
         }
         public List<DamageText> DamageTexts { get; set; } = new List<DamageText>();
         public List<Treasure> Treasures { get; set; } = new List<Treasure>();
@@ -556,6 +654,9 @@ namespace Platformer
                     , new Color(Color.White, 0.2f));
             if (DrawItem && UserInterface.MouseState == "portal")
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("portal"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
+                    , new Color(Color.White, 0.2f));
+            if (DrawItem && UserInterface.MouseState == "scorpion")
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("scorpion"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
                     , new Color(Color.White, 0.2f));
             foreach (var image in Trails)
             {
@@ -586,6 +687,8 @@ namespace Platformer
                 text.Draw();
             }
             Shop.Draw();
+            if (Restart != null)
+                Restart.Draw();
         }
     }
 }

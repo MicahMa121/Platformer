@@ -92,7 +92,6 @@ namespace Platformer
         }
         private int _count = 0;
         public bool Attacking { get; set; } = false;
-        public bool CanMove { get; set; } = true;
         public float Stamina { get; set; } 
         public bool Casting { get; set; } = false;
         public bool Dashing { get; set; } = false;
@@ -100,6 +99,8 @@ namespace Platformer
         public bool Dodge { get; set; } = false;
         public float MaxStamina { get; set; } = 100f;
         public float MaxHp { get; set; } = 100f;
+        public bool Reviving { get; set; } = false;
+        public bool Death { get; set;} = false;
         public void Update(Map map)
         {
             //Textures
@@ -119,6 +120,12 @@ namespace Platformer
                 }
                 if (_count >= Textures[(int)States].Count)
                 {
+                    if (States == CharacterStates.Death)
+                    {
+                        Death = true;
+                        map.Update(MapDisplacement);
+                        return;
+                    }
                     if (States == CharacterStates.Jump&&_velocity.Y>= 0)
                     {
                         Jumped = false;
@@ -198,7 +205,7 @@ namespace Platformer
                 Idle = true;
             //_grounded = false;
             //States
-            if (CanMove)
+            if (!Globals.Pause&&!Reviving)
             {
                 if (InputManager.IsKeyPressed(Keys.D))
                 {
@@ -383,10 +390,9 @@ namespace Platformer
                     newPos.X = Globals.WindowSize.X / 4 - newHitbox.Width;
                 }
                 Position = newPos;
-                map.Update(MapDisplacement);
                 for (int i =  0; i < slashes.Count; i++)
                 {
-                    slashes[i].Update(MapDisplacement, map);
+                    slashes[i].Update(MapDisplacement, map.Tiles);
                     if (slashes[i].Hit)
                     {
                         slashes.RemoveAt(i);
@@ -394,7 +400,7 @@ namespace Platformer
                     }
                 }
             }
-            //Debug.WriteLine("y velocity " + _velocity.Y);
+            map.Update(MapDisplacement);
         }
         public Vector2 MapDisplacement { get; set; }
         public int Speed { get; set; } = 5;

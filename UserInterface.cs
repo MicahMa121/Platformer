@@ -1,6 +1,5 @@
 ﻿
-using System;
-using System.Diagnostics;
+
 using System.IO;
 
 namespace Platformer
@@ -25,7 +24,9 @@ namespace Platformer
         public Button LevelBtn;
         public Button GravityBtn; 
         public bool EditOpen = false;
-        public Image Soil, Enemy, Treasure,Portal;
+        private Button _left;
+        private Button _right;
+        public Image Soil, Enemy, Treasure,Portal,Scorpion;
         public List<Image> Images = new List<Image>();
         public UserInterface()
         {
@@ -43,19 +44,29 @@ namespace Platformer
             Buttons.Add(LevelBtn);
             GravityBtn = new(NewGameBtn.Position + new Vector2(0, NewGameBtn.Height * 4 / 3*4), "Gravity:  " + Globals.Gravity);
             Buttons.Add(GravityBtn);
-            int side = Globals.TileSize;
-            Soil = new(Globals.Content.Load<Texture2D>("Soil"), Rectangle(side,side, new Vector2(Origin.X - 150, 570)),SpriteEffects.None);
-            Enemy = new(Globals.Content.Load<Texture2D>("Dog1"), Rectangle(side, side, new Vector2(Origin.X - 50, 570)), SpriteEffects.None);
-            Treasure = new(Globals.Content.Load<Texture2D>("treasure"), Rectangle(60,45, new Vector2(Origin.X + 50, 570)), SpriteEffects.None);
-            Portal = new(Globals.Content.Load<Texture2D>("portal"), Rectangle(side, side, new Vector2(Origin.X + 150, 570)), SpriteEffects.None);
-            Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal);Images.Add(Soil); 
+
+            SetImages();
+            _left = new Button(new(Origin.X - 250, 570), "<<<<<");
+            _right = new Button(new(Origin.X + 250, 570), ">>>>>");
             PreviousLevel = 1;
+        }
+        private void SetImages()
+        {
+            int side = Globals.TileSize;
+            Soil = new(Globals.Content.Load<Texture2D>("Soil"), Rectangle(side, side, new Vector2(Origin.X - 150, 570)), SpriteEffects.None);
+            Enemy = new(Globals.Content.Load<Texture2D>("Dog1"), Rectangle(side, side, new Vector2(Origin.X - 50, 570)), SpriteEffects.None);
+            Treasure = new(Globals.Content.Load<Texture2D>("treasure"), Rectangle(side, side, new Vector2(Origin.X + 50, 570)), SpriteEffects.None);
+            Portal = new(Globals.Content.Load<Texture2D>("portal"), Rectangle(side, side, new Vector2(Origin.X + 150, 570)), SpriteEffects.None);
+            Scorpion = new(Globals.Content.Load<Texture2D>("scorpion"), Rectangle(side, side, new Vector2(Origin.X + 250, 570)), SpriteEffects.None);
+            Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);
         }
         public int PreviousLevel { get; set; }
         public void Update(Map map)
         {
             foreach (Button button in Buttons)
                 button.Update();
+            _left.Update();
+            _right.Update();
             if (InputManager.IsKeyClicked(Keys.E))
             {
                 foreach (var portal in map.Portals)
@@ -69,7 +80,7 @@ namespace Platformer
                         }
                         LevelBtn.Text = "level " + Globals.Level;
                         map.NewGame();
-                        map.Player.Health = 80;
+                        map.Player.Health = map.Player.MaxHp;
                         PreviousLevel = Globals.Level;
                         break;
                     }
@@ -100,18 +111,21 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                 if (InputManager.MouseClicked &&
     EditLevelBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
                 {
+                    Globals.Pause = false;
                     open = false;
                     UIrect = Rectangle(0, 0, Origin);
                     EditOpen = true;
-                    Menurect = Rectangle(400, 100, new(Origin.X, 570));
+                    SetImages();
+                    Menurect = Rectangle(580, 100, new(Origin.X, 570));
                 }
                 if (InputManager.MouseClicked &&
         NewGameBtn.Rectangle(NewGameBtn.Width, NewGameBtn.Height).Contains(InputManager.MouseRectangle))
                 {
+                    Globals.Pause = false;
                     open = false;
                     UIrect = Rectangle(0, 0, Origin);
                     map.NewGame();
-                    map.Player.Health = 80;
+                    map.Player.Health = map.Player.MaxHp;
                     PreviousLevel = Globals.Level;
                 }
                 if (InputManager.MouseClicked &&
@@ -188,11 +202,14 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
             {
                 if (open)
                 {
+                    Globals.Pause = false;
                     open = false;
                     UIrect = Rectangle(0,0, Origin);
                 }
                 else
                 {
+                    Globals.Pause = true;
+                    map.Player.MapDisplacement = Vector2.Zero;
                     open = true;
                     SaveEditBtn.Text = "Save Edit";
                     Globals.Level = PreviousLevel;
@@ -202,24 +219,47 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
             }
             if (InputManager.MouseClicked && EditOpen)
             {
-                if (Soil.Rectangle.Contains(InputManager.MouseRectangle))
+                if (InputManager.MouseClicked &&
+        _left.Rectangle(_left.Width, _left.Height).Contains(InputManager.MouseRectangle))
+                {
+                    foreach (Image img in Images)
+                    {
+                        img.X += 100;
+                    }
+                }
+                if (InputManager.MouseClicked &&
+_right.Rectangle(_left.Width, _left.Height).Contains(InputManager.MouseRectangle))
+                {
+                    foreach (Image img in Images)
+                    {
+                        img.X -= 100;
+                    }
+                }
+                if (Soil.Rectangle.Contains(InputManager.MouseRectangle)&&Editable(Soil))
                 {
                     MouseState = "soil";
                 }
-                else if (Enemy.Rectangle.Contains(InputManager.MouseRectangle))
+                else if (Enemy.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Enemy))
                 {
                     MouseState = "enemy";
                 }
-                else if (Treasure.Rectangle.Contains(InputManager.MouseRectangle))
+                else if (Treasure.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Treasure))
                 {
                     MouseState = "treasure";
                 }
-                else if (Portal.Rectangle.Contains(InputManager.MouseRectangle))
+                else if (Portal.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Portal))
                 {
                     MouseState = "portal";
                 }
+                else if (Scorpion.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Scorpion))
+                {
+                    MouseState = "scorpion";
+                }
             }
-            Debug.WriteLine(MouseState);
+        }
+        private bool Editable(Image image)
+        {
+            return image.Position.X <= Origin.X + 110 && image.Position.X >= Origin.X - 190;
         }
         public void Draw()
         {
@@ -239,9 +279,11 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                 Globals.SpriteBatch.Draw(_tex, rect, Color.SandyBrown);
                 foreach (var image in Images)
                 {
-                    if (image.Position.X <= Origin.X +110 && image.Position.X >= Origin.X - 190)
+                    if (Editable(image))
                         image.Draw();
                 }
+                _left.Draw();
+                _right.Draw();
             }
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("setting"), Settingrect, Color.White);
         }

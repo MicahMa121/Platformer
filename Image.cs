@@ -7,6 +7,7 @@
         public Vector2 Position { get { return _position; } set { _position = value; } }
         private Rectangle _rect;
         public Rectangle Rectangle {  get { return _rect; } }
+        public int X { get { return _rect.X; } set { _rect.X = value; _position.X = value; } }
         public float Opacity { get; private set; }
         private SpriteEffects _spriteEffects;
         public Image(Texture2D texture, Rectangle rect, SpriteEffects spriteEffects)

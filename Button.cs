@@ -18,6 +18,10 @@ namespace Platformer
         {
             return new Vector2(Position.X - Globals.Font.MeasureString(Text).X/2, Position.Y - Globals.Font.MeasureString(Text).Y / 2);
         }
+        public bool ButtonPressed()
+        {
+            return InputManager.MouseClicked && Rectangle(Width, Height).Contains(InputManager.MouseRectangle);
+        }
         public enum ButtonStates
         {
             Pressed,

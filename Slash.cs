@@ -24,12 +24,12 @@ namespace Platformer
             width = w;
             height = h;
         }
-        public void Update(Vector2 displacement,Map map)
+        public void Update(Vector2 displacement,Tile[,] tiles)
         {
             position += displacement;
             position += velocity;
             rect = Globals.Rectangle(width,height, position);
-            foreach (var tile in map.Tiles)
+            foreach (var tile in tiles)
             {
                 if (!tile.Visible) { continue; }
                 if (rect.Intersects(tile.Rectangle))
