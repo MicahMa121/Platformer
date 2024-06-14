@@ -242,7 +242,7 @@ namespace Platformer
                         _velocity.X = -Speed;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 20f)
+                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f)
                 {
                     if (!Casting)
                     {
@@ -253,10 +253,10 @@ namespace Platformer
                         Hurt = false;
                         Attacking = false;
                         Jumped = false;
-                        Stamina -= 20;
+                        Stamina -= 25;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 20f&&!Dashing)
+                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f&&!Dashing)
                 {
                     Dashing = true;
                     Speed = 10;
@@ -268,7 +268,7 @@ namespace Platformer
                     States = CharacterStates.Run;
                     Color = new Color(Color.White, 0.5f);
                     _count = 0;
-                    Stamina -= 20;
+                    Stamina -= 25;
                 }
                 if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
                 {

@@ -56,7 +56,6 @@ namespace Platformer
             }
             return level;
         }
-
         private Random _gen = new Random();
         public Tile[,] Tiles;
         private Texture2D _soilTexture = Globals.Content.Load<Texture2D>("Soil");
@@ -70,7 +69,7 @@ namespace Platformer
             return !UserInterface.UIrect.Contains(InputManager.MouseRectangle)
                 && !UserInterface.Settingrect.Contains(InputManager.MouseRectangle)
                 && !UserInterface.Menurect.Contains(InputManager.MouseRectangle) &&
-                !Shop.Rectangle(Shop.Width, Shop.Height).Contains(InputManager.MouseRectangle)
+                !ShopBtn.Rectangle(ShopBtn.Width, ShopBtn.Height).Contains(InputManager.MouseRectangle)
                 ;
         }
         public Vector2 MaptoScreen(int x, int y) => new(x * tileSize, y * tileSize);
@@ -89,7 +88,7 @@ namespace Platformer
             Treasures.Clear();
             Enemies.Clear();
             Money = 0;
-            Shop = new Button(new(500, 600), "$ " + Money);
+            ShopBtn = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
             AddBorder(2* tileSize, 100 * tileSize);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
@@ -148,10 +147,11 @@ namespace Platformer
         public List<Coin> Coins { get; set; } = new List<Coin> ();
         public List<Portal> Portals { get; set; } = new List<Portal> ();
         public List<Image> Trails { get; set; } = new List<Image> ();
-        public Button Shop { get; set; } 
+        public Button ShopBtn { get; set; } 
         public Button Restart { get; set; }
         public void Update(Vector2 displacement)
         {
+
             for (int i = 0; i < DamageTexts.Count; i++)
             {
                 DamageTexts[i].Update(displacement);
@@ -222,11 +222,11 @@ namespace Platformer
                 {
                     coin.Collected = true;
                     Money += coin.Value;
-                    Shop.Text = "$ " + Money;
+                    ShopBtn.Text = "$ " + Money;
 
                 }
             }
-            Shop.Update();
+            ShopBtn.Update();
             for (int i = 0; i < Coins.Count; i++)
             {
                 if (Coins[i].Collected && Coins[i].Opacity <= 0f)
@@ -346,7 +346,7 @@ namespace Platformer
             {
                 if (Scorpions[i].Died)
                 {
-                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Scorpions[i].Rectangle.Center.X, Enemies[i].Rectangle.Center.Y), 5 * _gen.Next(1, 5));
+                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Scorpions[i].Rectangle.Center.X, Scorpions[i].Rectangle.Center.Y), 5 * _gen.Next(1, 5));
                     Coins.Add(coin);
                     Scorpions.RemoveAt(i);
                     i--;
@@ -686,7 +686,7 @@ namespace Platformer
             {
                 text.Draw();
             }
-            Shop.Draw();
+            ShopBtn.Draw();
             if (Restart != null)
                 Restart.Draw();
         }

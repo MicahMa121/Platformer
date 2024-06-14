@@ -1,8 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-
-namespace Platformer
+﻿namespace Platformer
 {
     //Dungeon generator: https://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
     enum Screen
@@ -23,6 +19,7 @@ namespace Platformer
 
         Map map;
         string loadTxt = "Click to Start";
+        Shop shop;
         Button button;
         UserInterface userInterface;
         public Game1()
@@ -76,6 +73,7 @@ namespace Platformer
             map.UserInterface = userInterface;
             map.Player = player;
             screen = Screen.game;
+            shop = new();
         }
         protected override void Update(GameTime gameTime)
         {
@@ -112,6 +110,11 @@ namespace Platformer
                 {
                     background.Update(player.MapDisplacement.X);
                 }
+                shop.Update(player.Atk,player.MaxHp,player.MaxStamina);
+                if (map.ShopBtn.ButtonPressed())
+                {
+                    shop.OpenShop = !shop.OpenShop;
+                }
             }
             this.Window.Title = _graphics.PreferredBackBufferWidth.ToString() +" "+ Globals.WindowSize.X;
             base.Update(gameTime);
@@ -143,6 +146,7 @@ namespace Platformer
                 map.Draw();
                 player.Draw();
                 userInterface.Draw();
+                shop.Draw();
             }
 
             _spriteBatch.End();

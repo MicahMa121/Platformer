@@ -133,6 +133,18 @@
 /processorParam:TextureFormat=Color
 /build:Enemy1.png
 
+#begin heart.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:heart.png
+
 #begin hunterspritesheet.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -306,6 +318,18 @@
 /processorParam:TextureFormat=Compressed
 /build:spritefont.spritefont
 
+#begin stamina.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:stamina.png
+
 #begin star.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -317,6 +341,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:star.png
+
+#begin sword.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:sword.png
 
 #begin treasure.png
 /importer:TextureImporter
