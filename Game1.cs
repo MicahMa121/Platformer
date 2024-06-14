@@ -111,6 +111,16 @@
                     background.Update(player.MapDisplacement.X);
                 }
                 shop.Update(player.Atk,player.MaxHp,player.MaxStamina);
+                for (int i = 0; i < shop.ShopItems.Count; i++)
+                {
+                    if (shop.ShopItems[i].IsBought)
+                    {
+                        player.Atk += shop.ShopItems[i]._atk;
+                        player.MaxHp += shop.ShopItems[i]._hp;
+                        player.Health += shop.ShopItems[i]._hp;
+                        player.Stamina += shop.ShopItems[i]._sta;
+                    }
+                }
                 if (map.ShopBtn.ButtonPressed())
                 {
                     shop.OpenShop = !shop.OpenShop;
