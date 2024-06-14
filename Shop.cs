@@ -6,7 +6,7 @@
         private Rectangle Border = Globals.Rectangle(Globals.WindowSize.X * 3 / 4-10, Globals.WindowSize.Y / 2-10, new Vector2(Globals.WindowSize.X / 2, Globals.WindowSize.Y / 2));
         private List<Image> ShopImages = new List<Image>();
         private List<Button> ShopButtons = new List<Button>();
-        private List<Item> ShopItems = new List<Item>();
+        public List<Item> ShopItems = new List<Item>();
         private Texture2D RectTex;
         private float attack, health, strength;
         private Button swordbtn, hpbtn, staminabtn;
