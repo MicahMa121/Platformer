@@ -126,7 +126,6 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                     UIrect = Rectangle(0, 0, Origin);
                     map.NewGame();
                     map.Revive();
-                    map.Player.Health = map.Player.MaxHp;
                     PreviousLevel = Globals.Level;
                 }
                 if (InputManager.MouseClicked &&

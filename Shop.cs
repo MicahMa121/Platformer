@@ -49,11 +49,11 @@ namespace Platformer
 
             ItemPosition = new(sword.Rectangle.Center.X, sword.Rectangle.Bottom + 5 * height);
             Item _water = new(Globals.Content.Load<Texture2D>("water"), Vector2.Zero, 100, 1, 5, 5, 0, "Clean water\nGulp...Gulp...Gulp...\n\nAtk Bonus: 1\nHp Increase: 5",null,null);
-            Item _HpPotion = new(Globals.Content.Load<Texture2D>("hpPotion"), Vector2.Zero, 100, 0, 0, 50, 0, "Health Potion\n\nRestores Your Health, No Special Effects\nHealth Recover: 50");
-            Item _scythe = new(Globals.Content.Load<Texture2D>("scythe"), Vector2.Zero, 2500, 25, -25, 0, 10, "Scythe\nWeapon of a Past Shinigami\nBecareful!\nDon't Let the Demons Scare You!\n\nAtk Bonus: 25\nStamina Increase:10\nHP Decrease: -25");
-            Item dagger = new(Globals.Content.Load<Texture2D>("dagger"), Vector2.Zero, 100, 3, -10, 0, 0, "Black Dagger\nNo Pain, No Gain\nIncrease ATK by Decreasing MAXHP\n\nAtk Bonus: 3\nHp Decrease: -10");
-            Item boot = new(Globals.Content.Load<Texture2D>("boot"), Vector2.Zero, 100, 0, 5, 5, 5, "Swift Boot\nIncrease HP and Stamina \nI think I might be flash...\n\nStamina Increase: 5\nHp Increase: 5");
-            Item excalibur = new(Globals.Content.Load<Texture2D>("excalibur"), Vector2.Zero, 500, 10, 0, 0, 5, "EXCALIBURR\nFreshly Pulled from a Stone\n\nAtk Bonus: 10\nStamina Increase: 5");
+            Item _HpPotion = new(Globals.Content.Load<Texture2D>("hpPotion"), Vector2.Zero, 100, 0, 0, 50, 0, "Health Potion\n\nRestores Your Health, No Special Effects\nHealth Recover: 50",null,null);
+            Item _scythe = new(Globals.Content.Load<Texture2D>("scythe"), Vector2.Zero, 2500, 25, -25, 0, 10, "Scythe\nWeapon of a Past Shinigami\nBecareful!\nDon't Let the Demons Scare You!\n\nAtk Bonus: 25\nStamina Increase:10\nHP Decrease: -25",null,"scythe");
+            Item dagger = new(Globals.Content.Load<Texture2D>("dagger"), Vector2.Zero, 100, 3, -10, 0, 0, "Black Dagger\nNo Pain, No Gain\nIncrease ATK by Decreasing MAXHP\n\nAtk Bonus: 3\nHp Decrease: -10",null,null);
+            Item boot = new(Globals.Content.Load<Texture2D>("boot"), Vector2.Zero, 100, 0, 5, 5, 5, "Swift Boot\nIncrease HP and Stamina \nI think I might be flash...\n\nStamina Increase: 5\nHp Increase: 5",null,null);
+            Item excalibur = new(Globals.Content.Load<Texture2D>("excalibur"), Vector2.Zero, 500, 10, 0, 0, 5, "EXCALIBURR\nFreshly Pulled from a Stone\n\nAtk Bonus: 10\nStamina Increase: 5","Slash",null);
 
             Items.Add(_water);
             Items.Add(_HpPotion);

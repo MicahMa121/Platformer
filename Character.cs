@@ -40,6 +40,7 @@ namespace Platformer
         public float Health { get; set; } 
         public SpriteEffects SpriteEffect { get; set; }
         private List<Slash> slashes = new List<Slash>();
+        private List<Boomerang> boomerangs = new List<Boomerang>();
         public Character(Texture2D spritesheet,Texture2D spritesheet2, Vector2 position)
         {
             Position = position;
@@ -115,7 +116,7 @@ namespace Platformer
             }
             if (_time >= _animationSpeed)
             {
-                Stamina += 3f;
+                Stamina += MaxStamina*3/100;
                 if (Stamina >= MaxStamina)
                 {
                     Stamina = MaxStamina;
@@ -253,7 +254,7 @@ namespace Platformer
                         _velocity.X = -Speed;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f)
+                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f&&SkillZ != "Locked")
                 {
                     if (!Casting)
                     {
@@ -265,6 +266,45 @@ namespace Platformer
                         Attacking = false;
                         Jumped = false;
                         Stamina -= 25;
+                    }
+                }
+                if (InputManager.IsKeyClicked(Keys.X) && Stamina >= 100f && SkillX != "Locked")
+                {
+                    if (!Attacking)
+                        _count = 0;
+
+                    if (Jumped)
+                    {
+                        States = CharacterStates.Attack2;
+                        Idle = false;
+                        Casting = false;
+                    }
+                    else
+                    {
+                        States = CharacterStates.Attack1;
+                        Idle = false;
+                        Casting = false;
+                    }
+                    Hurt = false;
+                    Stamina -= 100;
+                    Debug.WriteLine(SkillX);
+                    if (SkillX == "scythe")
+                    {
+                        
+                        Vector2 slashV = Vector2.Zero;
+                        float angle = (float)Math.PI / 16;
+                        if (RightDirection)
+                        {
+                            slashV = new Vector2(Speed * 2, 0);
+
+                        }
+                        else
+                        {
+                            slashV = new Vector2(-Speed * 2, 0);
+                            angle = -(float)Math.PI / 16;
+                        }
+                        Boomerang slash = new(Globals.Content.Load<Texture2D>("scythe"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y+20), slashV,angle, SpriteEffect);
+                        boomerangs.Add(slash);
                     }
                 }
                 if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f&&!Dashing)
@@ -410,6 +450,15 @@ namespace Platformer
                         i--;
                     }
                 }
+                for (int i = 0; i < boomerangs.Count; i++)
+                {
+                    boomerangs[i].Update(MapDisplacement, map.Tiles);
+                    if (boomerangs[i].Hit)
+                    {
+                        boomerangs.RemoveAt(i);
+                        i--;
+                    }
+                }
             }
             map.Update(MapDisplacement);
         }
@@ -444,6 +493,10 @@ namespace Platformer
             foreach (Slash slash in slashes)
             {
                 slash.Draw();
+            }
+            foreach (Boomerang boomerang in boomerangs)
+            {
+                boomerang.Draw();
             }
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, Globals.TileSize, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)(Health/MaxHp*Globals.TileSize), 10),Color.Green);

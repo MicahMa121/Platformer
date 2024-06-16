@@ -90,14 +90,14 @@ namespace Platformer
                 Player.Health = Player.MaxHp;
                 Player.Death = false;
                 Player.Reviving = false;
-                Player.SkillZ = "Slash";
+                Player.SkillZ = "Locked";
                 Player.SkillX = "Locked";
             }
             if (shop != null)
             {
                 shop.RefreshShop();
             }
-            Money = 0;
+            Money = 10000;
             ShopBtn = new Button(new(500, 600), "$ " + Money);
         }
         public void NewGame()
@@ -109,7 +109,7 @@ namespace Platformer
             Treasures.Clear();
             Enemies.Clear();
 
-
+            ShopBtn = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
             AddBorder(2* tileSize, 100 * tileSize);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
