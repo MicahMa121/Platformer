@@ -56,6 +56,8 @@ namespace Platformer
             SpriteEffect = SpriteEffects.None;
             Textures[(int)CharacterStates.Hurt].Insert(1, Textures[(int)CharacterStates.Hurt][0]);
             Textures[(int)CharacterStates.Hurt].Insert(2, Textures[(int)CharacterStates.Hurt][2]);
+            SkillZ = "Locked";
+            SkillX = "Locked";
         }
         public static List<List<Texture2D>> SpriteSheet(Texture2D spritesheet, int w, int h)
         {
@@ -101,11 +103,16 @@ namespace Platformer
         public float MaxHp { get; set; } = 100f;
         public bool Reviving { get; set; } = false;
         public bool Death { get; set;} = false;
+        public string SkillZ { get; set; }
+        public string SkillX { get; set; }
         public void Update(Map map)
         {
             //Textures
             _time += Globals.Time;
-
+            if (Health > MaxHp)
+            {
+                Health = MaxHp;
+            }
             if (_time >= _animationSpeed)
             {
                 Stamina += 3f;
@@ -137,17 +144,21 @@ namespace Platformer
                     if (States == CharacterStates.Craft)
                     {
                         Casting = false;
-                        Vector2 slashV = Vector2.Zero;
-                        if (RightDirection)
+                        if (SkillZ == "Slash")
                         {
-                            slashV = new Vector2(Speed * 2, 0);
+                            Vector2 slashV = Vector2.Zero;
+                            if (RightDirection)
+                            {
+                                slashV = new Vector2(Speed * 2, 0);
+                            }
+                            else
+                            {
+                                slashV = new Vector2(-Speed * 2, 0);
+                            }
+                            Slash slash = new Slash(Globals.Content.Load<Texture2D>("Slash"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), slashV, SpriteEffect, Globals.TileSize / 2, Globals.TileSize / 4);
+                            slashes.Add(slash);
                         }
-                        else
-                        {
-                            slashV = new Vector2(-Speed * 2, 0);
-                        }
-                        Slash slash = new Slash(Globals.Content.Load<Texture2D>("Slash"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), slashV, SpriteEffect,Globals.TileSize/2,Globals.TileSize/4);
-                        slashes.Add(slash);
+
                     }
                     if (States == CharacterStates.Attack2)
                     {
@@ -425,8 +436,10 @@ namespace Platformer
         public void Draw()
         {
             if (Attacking)
-                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
+            {
+                //Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
+            }
+            //Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox(Position), Color.Red);
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, SpriteEffect, 0f);
             foreach (Slash slash in slashes)
             {

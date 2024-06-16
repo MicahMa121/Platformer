@@ -1,4 +1,6 @@
-﻿namespace Platformer
+﻿using Microsoft.Xna.Framework.Graphics;
+
+namespace Platformer
 {
     //Dungeon generator: https://journal.stuffwithstuff.com/2014/12/21/rooms-and-mazes/
     enum Screen
@@ -22,6 +24,7 @@
         Shop shop;
         Button button;
         UserInterface userInterface;
+        List<DamageText> damageTexts = new List<DamageText> ();
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -74,6 +77,7 @@
             map.Player = player;
             screen = Screen.game;
             shop = new();
+            map.shop = shop;
         }
         protected override void Update(GameTime gameTime)
         {
@@ -103,27 +107,78 @@
             }
             else if (screen == Screen.game)
             {
-
                 player.Update(map);
                 userInterface.Update(map);
                 foreach (Background background in backgrounds)
                 {
                     background.Update(player.MapDisplacement.X);
                 }
-                shop.Update(player.Atk,player.MaxHp,player.MaxStamina);
-                for (int i = 0; i < shop.ShopItems.Count; i++)
+                for (int i = 0; i < damageTexts.Count; i++)
                 {
-                    if (shop.ShopItems[i].IsBought)
+                    damageTexts[i].Update(player.MapDisplacement);
+                    if (damageTexts[i].Opacity<= 0)
                     {
-                        player.Atk += shop.ShopItems[i]._atk;
-                        player.MaxHp += shop.ShopItems[i]._hp;
-                        player.Health += shop.ShopItems[i]._hp;
-                        player.Stamina += shop.ShopItems[i]._sta;
+                        damageTexts.RemoveAt(i);
+                        i--;
                     }
                 }
+                shop.Update(player.Atk,player.MaxHp,player.Health,player.MaxStamina,player.SkillZ,player.SkillX);
                 if (map.ShopBtn.ButtonPressed())
                 {
                     shop.OpenShop = !shop.OpenShop;
+                }
+                if (shop.OpenShop)
+                {
+                    shop.ExitBtn.Update();
+                    if (shop.ExitBtn.ButtonPressed())
+                    {
+                        
+                        shop.OpenShop = false;
+                    }
+                    for (int i = 0; i < shop.ShopItems.Count; i++)
+                    {
+                        if (shop.ShopItems[i].IsBought)
+                        {
+                            if (map.Money >= shop.ShopItems[i]._cost)
+                            {
+                                shop.ShopItems[i].Sold = true;
+                                shop.ShopItems[i].IsBought = false;
+                                player.Atk += shop.ShopItems[i]._atk;
+                                player.MaxHp += shop.ShopItems[i]._maxHp;
+                                player.Health += shop.ShopItems[i]._hp;
+                                player.MaxStamina += shop.ShopItems[i]._sta;
+                                if (shop.ShopItems[i]._skillz != null)
+                                {
+                                    player.SkillZ = shop.ShopItems[i]._skillz;
+                                }
+                                if (shop.ShopItems[i]._skillx != null)
+                                {
+                                    player.SkillX = shop.ShopItems[i]._skillx;
+                                }
+                                map.Money -= (int)shop.ShopItems[i]._cost;
+                                map.ShopBtn.Text = "$ " + map.Money;
+                            }
+                            else
+                            {
+                                shop.ShopItems[i].IsBought = false;
+                                DamageText pop = new("Not Enough Money!", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Not Enough Money!").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Not Enough Money!").Y), Color.Red);
+                                damageTexts.Add(pop);
+                            }
+                        }
+                    }
+                    if (shop.refreshBtn.ButtonPressed())
+                    {
+                        if (map.Money >= 50)
+                        {
+                            shop.RefreshShop();
+                            map.Money -= 50;
+                        }
+                        else
+                        {
+                            DamageText pop = new("Not Enough Money!", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Not Enough Money!").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Not Enough Money!").Y), Color.Red);
+                            damageTexts.Add(pop);
+                        }
+                    }
                 }
             }
             this.Window.Title = _graphics.PreferredBackBufferWidth.ToString() +" "+ Globals.WindowSize.X;
@@ -157,6 +212,10 @@
                 player.Draw();
                 userInterface.Draw();
                 shop.Draw();
+                foreach(var item in damageTexts)
+                {
+                    item.Draw();
+                }
             }
 
             _spriteBatch.End();

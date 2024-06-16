@@ -3,6 +3,7 @@
     public class Image
     {
         private Texture2D _texture;
+        public Texture2D Texture { get { return _texture; } set { _texture = value; } }
         private Vector2 _position;
         public Vector2 Position { get { return _position; } set { _position = value; } }
         private Rectangle _rect;

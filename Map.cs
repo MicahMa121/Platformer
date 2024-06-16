@@ -79,6 +79,27 @@ namespace Platformer
 
             NewGame();
         }
+        public Shop shop { get;set; }
+        public void Revive()
+        {
+            if (Player != null)
+            {
+                Player.MaxHp = 100;
+                Player.Atk = 5;
+                Player.MaxStamina = 100;
+                Player.Health = Player.MaxHp;
+                Player.Death = false;
+                Player.Reviving = false;
+                Player.SkillZ = "Slash";
+                Player.SkillX = "Locked";
+            }
+            if (shop != null)
+            {
+                shop.RefreshShop();
+            }
+            Money = 0;
+            ShopBtn = new Button(new(500, 600), "$ " + Money);
+        }
         public void NewGame()
         {
             Scorpions.Clear();
@@ -87,8 +108,8 @@ namespace Platformer
             Borders.Clear();
             Treasures.Clear();
             Enemies.Clear();
-            Money = 0;
-            ShopBtn = new Button(new(500, 600), "$ " + Money);
+
+
             int[,] map = Map2D();
             AddBorder(2* tileSize, 100 * tileSize);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
@@ -192,9 +213,7 @@ namespace Platformer
                         if (Restart.ButtonPressed())
                         {
                             NewGame();
-                            Player.Health = Player.MaxHp;
-                            Player.Death = false;
-                            Player.Reviving = false;
+                            Revive();
                             Player.States = Character.CharacterStates.Idle;
 
                             Restart = null;
