@@ -172,6 +172,7 @@ namespace Platformer
                         {
                             shop.RefreshShop();
                             map.Money -= 50;
+                            map.ShopBtn.Text = "$ " + map.Money;
                         }
                         else
                         {
