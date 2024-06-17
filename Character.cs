@@ -106,10 +106,26 @@ namespace Platformer
         public bool Death { get; set;} = false;
         public string SkillZ { get; set; }
         public string SkillX { get; set; }
+        public List<ScytheAttack> scytheAttacks = new List<ScytheAttack>();
+        public int MoveIndex = 0;
+        private float _cooldown = 0;
+        private float _enrageDuration = 0;
+        public bool Enrage = false;
+        public bool SkillAttacking = false;
         public void Update(Map map)
         {
             //Textures
             _time += Globals.Time;
+            if (_enrageDuration >= 5)
+            {
+                _enrageDuration = 0;
+                Enrage = false;
+            }
+            else if (Enrage)
+            {
+                _enrageDuration += Globals.Time;
+            }
+
             if (Health > MaxHp)
             {
                 Health = MaxHp;
@@ -141,6 +157,7 @@ namespace Platformer
                     if (States == CharacterStates.Attack1)
                     {
                         Attacking = false;
+                        SkillAttacking = false;
                     }
                     if (States == CharacterStates.Craft)
                     {
@@ -165,6 +182,7 @@ namespace Platformer
                     {
                         Jumped = false;
                         Attacking = false;
+                        SkillAttacking = false;
                     }
                     if (States == CharacterStates.Hurt)
                     {
@@ -186,7 +204,7 @@ namespace Platformer
                     if (!slash.Hit && slash.Rectangle.Intersects(enemy.Rectangle))
                     {
                         slash.Hit = true;
-                        enemy.Health -= map.Player.Atk * 4;
+                        enemy.Health -= Atk * 4;
                         DamageText text = new(Convert.ToString(map.Player.Atk * 4), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.AliceBlue);
                         map.DamageTexts.Add(text);
                         enemy.Hurt = true;
@@ -201,7 +219,7 @@ namespace Platformer
                     if (!slash.Hit && slash.Rectangle.Intersects(enemy.Rectangle))
                     {
                         slash.Hit = true;
-                        enemy.Health -= map.Player.Atk * 4;
+                        enemy.Health -= Atk * 4;
                         DamageText text = new(Convert.ToString(map.Player.Atk * 4), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.AliceBlue);
                         map.DamageTexts.Add(text);
                         enemy.Hurt = true;
@@ -211,18 +229,53 @@ namespace Platformer
                     }
                 }
             }
+            foreach (var slash in scytheAttacks)
+            {
+                foreach (var enemy in map.Enemies)
+                {
+                    if (enemy.Dying) continue;
+                    if (slash.Rectangle.Intersects(enemy.Rectangle)&&enemy.States != EnemyStates.Hurt)
+                    {
+                        enemy.Health -= (int)Atk * 1.5f;
+                        Health += (int)MaxHp * 0.05f;
+                        DamageText text = new(Convert.ToString(Math.Round(Atk * 1.5f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.DarkRed);
+                        map.DamageTexts.Add(text);
+                        DamageText text1 = new(Convert.ToString(Math.Round(MaxHp * 0.05f)), Position, Color.Green);
+                        map.DamageTexts.Add(text1);
+                        enemy.Hurt = true;
+                        enemy.States = EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+                foreach (var enemy in map.Scorpions)
+                {
+                    if (enemy.Dying) continue;
+                    if (slash.Rectangle.Intersects(enemy.Rectangle) && enemy.States != (Scorpion.EnemyStates)EnemyStates.Hurt)
+                    {
+                        enemy.Health -= (int)Atk * 1.5f;
+                        Health += (int)MaxHp * 0.05f;
+                        DamageText text = new(Convert.ToString(Math.Round(Atk * 1.5f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.DarkRed);
+                        map.DamageTexts.Add(text);
+                        DamageText text1 = new(Convert.ToString(Math.Round(MaxHp * 0.05f)), Position, Color.Green);
+                        map.DamageTexts.Add(text1);
+                        enemy.Hurt = true;
+                        enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+            }
 
             _velocity.X = 0;
-            if (!Jumped && !Attacking&& !Hurt&&!Casting&&!Dashing)
+            if (!Jumped && !Attacking&& !Hurt&&!Casting&&!Dashing&&!SkillAttacking)
                 Idle = true;
             //_grounded = false;
             //States
-            if (!Globals.Pause&&!Reviving)
+            if (!Globals.Pause && !Reviving)
             {
                 if (InputManager.IsKeyPressed(Keys.D))
                 {
                     _velocity.X = Speed;
-                    if (!Jumped && !Attacking&&!Hurt&&!Casting)
+                    if (!Jumped && !Attacking && !Hurt && !Casting&&!SkillAttacking)
                         States = CharacterStates.Run;
                     if (!RightDirection)
                     {
@@ -234,7 +287,7 @@ namespace Platformer
                 else if (InputManager.IsKeyPressed(Keys.A))
                 {
                     _velocity.X = -Speed;
-                    if (!Jumped && !Attacking && !Hurt && !Casting)
+                    if (!Jumped && !Attacking && !Hurt && !Casting && !SkillAttacking)
                         States = CharacterStates.Run;
                     if (RightDirection)
                     {
@@ -254,7 +307,7 @@ namespace Platformer
                         _velocity.X = -Speed;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f&&SkillZ != "Locked")
+                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f && SkillZ != "Locked")
                 {
                     if (!Casting)
                     {
@@ -264,13 +317,14 @@ namespace Platformer
                         Casting = true;
                         Hurt = false;
                         Attacking = false;
+                        SkillAttacking = false;
                         Jumped = false;
                         Stamina -= 25;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.X) && Stamina >= 100f && SkillX != "Locked")
+                if (InputManager.IsKeyClicked(Keys.X) && Stamina >= 75f && SkillX != "Locked")
                 {
-                    if (!Attacking)
+                    if (!Attacking && !SkillAttacking)
                         _count = 0;
 
                     if (Jumped)
@@ -286,11 +340,21 @@ namespace Platformer
                         Casting = false;
                     }
                     Hurt = false;
-                    Stamina -= 100;
-                    Debug.WriteLine(SkillX);
-                    if (SkillX == "scythe")
+                    Stamina -= 75;
+                    if (SkillX == "firepunch")
                     {
-                        
+                        Enrage = true;
+                        _cooldown = 0;
+                        _enrageDuration = 0;
+                        if (Health >= MaxHp / 10 && Health < MaxHp / 10 + MaxHp/2)
+                        {
+                            Health = MaxHp / 10;
+                        }
+                        else if (Health > MaxHp / 2)
+                        {
+                            Health -= MaxHp / 2;
+                        }
+                        /*
                         Vector2 slashV = Vector2.Zero;
                         float angle = (float)Math.PI / 16;
                         if (RightDirection)
@@ -304,17 +368,18 @@ namespace Platformer
                             angle = -(float)Math.PI / 16;
                         }
                         Boomerang slash = new(Globals.Content.Load<Texture2D>("scythe"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y+20), slashV,angle, SpriteEffect);
-                        boomerangs.Add(slash);
+                        boomerangs.Add(slash);*/
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f&&!Dashing)
+                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f && !Dashing)
                 {
                     Dashing = true;
                     Speed = 10;
-                    Idle = false;   
+                    Idle = false;
                     Casting = false;
                     Hurt = false;
                     Attacking = false;
+                    SkillAttacking = false;
                     Jumped = false;
                     States = CharacterStates.Run;
                     Color = new Color(Color.White, 0.5f);
@@ -323,7 +388,7 @@ namespace Platformer
                 }
                 if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
                 {
-                    _velocity.Y = - 15;
+                    _velocity.Y = -15;
 
                     Stamina -= 20;
                     if (!Casting)
@@ -332,29 +397,80 @@ namespace Platformer
                         Idle = false;
                         Jumped = true;
                         Attacking = false;
+                        SkillAttacking = false;
                         Hurt = false;
                     }
                 }
                 if (InputManager.IsKeyClicked(Keys.Space))
                 {
-                    if (!Attacking)
+                    if (!Attacking && !SkillAttacking)
                         _count = 0;
 
                     if (Jumped)
                     {
+                        if (!Enrage)
+                        {
+
+                            Attacking = true;
+                        }
+                        else
+                        {
+                            SkillAttacking = true;
+                        }
                         States = CharacterStates.Attack2;
                         Idle = false;
-                        Attacking = true;
+
                         Casting = false;
                     }
                     else
                     {
+                        if (!Enrage)
+                        {
+
+                            Attacking = true;
+                        }
+                        else
+                        {
+                            SkillAttacking = true;
+                        }
                         States = CharacterStates.Attack1;
                         Idle = false;
-                        Attacking = true;
+
                         Casting = false;
                     }
                     Hurt = false;
+                    if (Enrage)
+                    {
+                        int x = 0;
+                        if (RightDirection)
+                        {
+                            x = -40;
+                        }
+                        else
+                        {
+                            x = 40;
+                        }
+                        ScytheAttack scytheAttack = new(Globals.Content.Load<Texture2D>("fireslash"), new(Hitbox(Position).Center.X - x, Hitbox(Position).Center.Y), Globals.TileSize*2, SpriteEffect, MoveIndex);
+                        scytheAttacks.Add(scytheAttack);
+                        MoveIndex++;
+                        if (MoveIndex >= scytheAttack._textures.Count)
+                        {
+                            MoveIndex = 0;
+                        }
+                    }
+                }
+                if (_cooldown >= 1)
+                {
+                    MoveIndex = 0;
+                }
+                for (int i  = 0; i < scytheAttacks.Count; i++)
+                {
+                    scytheAttacks[i].Update();
+                    if (scytheAttacks[i].Done)
+                    {
+                        scytheAttacks.RemoveAt(i);
+                        i--;
+                    }
                 }
                 _velocity.Y += Globals.Gravity;
                 if (Idle)
@@ -498,9 +614,18 @@ namespace Platformer
             {
                 boomerang.Draw();
             }
+            foreach (var item in scytheAttacks)
+            {
+                item.Draw();
+            }
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, Globals.TileSize, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)(Health/MaxHp*Globals.TileSize), 10),Color.Green);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y+10, (int)(Stamina/MaxStamina*Globals.TileSize), 2), Color.LightGoldenrodYellow);
+            if (Enrage)
+            {
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("firepunch"), new Rectangle((int)Position.X, (int)Position.Y - 20, Globals.TileSize / 4, Globals.TileSize / 4), new Color(Color.White, 1 - 0.2f * (float)_enrageDuration));
+            }
+            
         }
         private Texture2D FlipTexture(Texture2D texture)
         {

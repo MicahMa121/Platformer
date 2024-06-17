@@ -90,6 +90,12 @@ namespace Platformer
                 Player.Health = Player.MaxHp;
                 Player.Death = false;
                 Player.Reviving = false;
+                Player.Attacking = false;
+                Player.SkillAttacking = false;
+                Player.Casting = false;
+                Player.Jumped = false;
+                Player.Hurt = false;
+                Player.Enrage = false;
                 Player.SkillZ = "Locked";
                 Player.SkillX = "Locked";
             }

@@ -9,9 +9,9 @@
         public Vector2 Origin { get; protected set; }
         public Color Color { get; set; } = Color.White;
         public Rectangle Rectangle { get; set; }
-        public float Atk { get; set; } = 5f;
+        public float Atk { get; set; } = 5f*Globals.Level;
         
-
+        public float Def { get; set; }
 
         public float Rotation { get; protected set; } = 0f;
         public List<List<Texture2D>> Textures { get; set; }
@@ -28,7 +28,7 @@
         public EnemyStates States { get; set; }
         public bool RightDirection { get; set; } = true;
         public float Health { get; set; }
-        public float MaxHp { get; set; } = 50f;
+        public float MaxHp { get; set; } = 50f*Globals.Level;
         public Enemy(Texture2D spritesheet, Vector2 position)
         {
             _spriteEffect = SpriteEffects.None;
