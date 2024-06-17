@@ -105,10 +105,15 @@ namespace Platformer
         public bool Death { get; set;} = false;
         public string SkillZ { get; set; }
         public string SkillX { get; set; }
+
+        public List<ScytheAttack> scytheAttacks = new List<ScytheAttack>();
+        public int MoveIndex = 0;
+        public float _cooldown;
         public void Update(Map map)
         {
             //Textures
             _time += Globals.Time;
+            _cooldown += Globals.Time;
             if (Health > MaxHp)
             {
                 Health = MaxHp;
@@ -265,6 +270,48 @@ namespace Platformer
                         Attacking = false;
                         Jumped = false;
                         Stamina -= 25;
+                    }
+                }
+                if (InputManager.IsKeyClicked(Keys.X))
+                {
+                    if (!Attacking)
+                        _count = 0;
+
+                    if (Jumped)
+                    {
+                        States = CharacterStates.Attack2;
+                        Idle = false;
+                        Attacking = true;
+                        Casting = false;
+                    }
+                    else
+                    {
+                        States = CharacterStates.Attack1;
+                        Idle = false;
+                        Attacking = true;
+                        Casting = false;
+                    }
+                    Hurt = false;
+                    ScytheAttack scytheAttack = new(Globals.Content.Load<Texture2D>("fireslash"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), Globals.TileSize, SpriteEffect, MoveIndex);
+                    scytheAttacks.Add(scytheAttack);
+                    MoveIndex++;
+                    if (MoveIndex >= 5)
+                    {
+                        MoveIndex = 0;
+                    }
+                }
+                if (_cooldown >= 3f)
+                {
+                    MoveIndex = 0;
+                    _cooldown = 0;
+                }
+                for (int i = 0; i < scytheAttacks.Count; i++)
+                {
+                    scytheAttacks[i].Update();
+                    if (scytheAttacks[i].Done)
+                    {
+                        scytheAttacks.RemoveAt(i);
+                        i--;
                     }
                 }
                 if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f&&!Dashing)
@@ -448,6 +495,10 @@ namespace Platformer
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, Globals.TileSize, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y, (int)(Health/MaxHp*Globals.TileSize), 10),Color.Green);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y+10, (int)(Stamina/MaxStamina*Globals.TileSize), 2), Color.LightGoldenrodYellow);
+            foreach (var item in scytheAttacks)
+            {
+                item.Draw();
+            }
         }
         private Texture2D FlipTexture(Texture2D texture)
         {

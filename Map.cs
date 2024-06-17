@@ -109,7 +109,7 @@ namespace Platformer
             Treasures.Clear();
             Enemies.Clear();
 
-
+            ShopBtn = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
             AddBorder(2* tileSize, 100 * tileSize);
             Tiles = new Tile[map.GetLength(0), map.GetLength(1)];
