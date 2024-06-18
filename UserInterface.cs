@@ -52,6 +52,7 @@ namespace Platformer
         }
         private void SetImages()
         {
+            Images.Clear();
             int side = Globals.TileSize;
             Soil = new(Globals.Content.Load<Texture2D>("Soil"), Rectangle(side, side, new Vector2(Origin.X - 150, 570)), SpriteEffects.None);
             Enemy = new(Globals.Content.Load<Texture2D>("Dog1"), Rectangle(side, side, new Vector2(Origin.X - 50, 570)), SpriteEffects.None);

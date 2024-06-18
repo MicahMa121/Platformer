@@ -116,6 +116,7 @@ namespace Platformer
         {
             //Textures
             _time += Globals.Time;
+            _cooldown += Globals.Time;
             if (_enrageDuration >= 5)
             {
                 _enrageDuration = 0;
@@ -176,7 +177,23 @@ namespace Platformer
                             Slash slash = new Slash(Globals.Content.Load<Texture2D>("Slash"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), slashV, SpriteEffect, Globals.TileSize / 2, Globals.TileSize / 4);
                             slashes.Add(slash);
                         }
+                        if (SkillZ == "BanAna")
+                        {
+                            Vector2 slashV = Vector2.Zero;
+                            float angle = (float)Math.PI / 16;
+                            if (RightDirection)
+                            {
+                                slashV = new Vector2(Speed * 2, 0);
 
+                            }
+                            else
+                            {
+                                slashV = new Vector2(-Speed * 2, 0);
+                                angle = -(float)Math.PI / 16;
+                            }
+                            Boomerang slash = new(Globals.Content.Load<Texture2D>("banana"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y +10 ), slashV, angle, SpriteEffect);
+                            boomerangs.Add(slash);
+                        }
                     }
                     if (States == CharacterStates.Attack2)
                     {
@@ -264,11 +281,38 @@ namespace Platformer
                     }
                 }
             }
-
+            foreach (var slash in boomerangs)
+            {
+                foreach (var enemy in map.Enemies)
+                {
+                    if (enemy.Dying) continue;
+                    if (slash.Rectangle.Intersects(enemy.Rectangle) && enemy.States != EnemyStates.Hurt)
+                    {
+                        enemy.Health -= (int)MaxHp*0.05f;
+                        DamageText text = new(Convert.ToString(Math.Round((int)MaxHp * 0.05f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.GreenYellow);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy.States = EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+                foreach (var enemy in map.Scorpions)
+                {
+                    if (enemy.Dying) continue;
+                    if (slash.Rectangle.Intersects(enemy.Rectangle) && enemy.States != (Scorpion.EnemyStates)EnemyStates.Hurt)
+                    {
+                        enemy.Health -= (int)MaxHp * 0.05f;
+                        DamageText text = new(Convert.ToString(Math.Round((int)MaxHp * 0.05f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.GreenYellow);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+            }
             _velocity.X = 0;
             if (!Jumped && !Attacking&& !Hurt&&!Casting&&!Dashing&&!SkillAttacking)
                 Idle = true;
-            //_grounded = false;
             //States
             if (!Globals.Pause && !Reviving)
             {
@@ -354,21 +398,6 @@ namespace Platformer
                         {
                             Health -= MaxHp / 2;
                         }
-                        /*
-                        Vector2 slashV = Vector2.Zero;
-                        float angle = (float)Math.PI / 16;
-                        if (RightDirection)
-                        {
-                            slashV = new Vector2(Speed * 2, 0);
-
-                        }
-                        else
-                        {
-                            slashV = new Vector2(-Speed * 2, 0);
-                            angle = -(float)Math.PI / 16;
-                        }
-                        Boomerang slash = new(Globals.Content.Load<Texture2D>("scythe"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y+20), slashV,angle, SpriteEffect);
-                        boomerangs.Add(slash);*/
                     }
                 }
                 if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f && !Dashing)
@@ -459,9 +488,10 @@ namespace Platformer
                         }
                     }
                 }
-                if (_cooldown >= 1)
+                if (_cooldown >= 3)
                 {
                     MoveIndex = 0;
+                    _cooldown = 0;
                 }
                 for (int i  = 0; i < scytheAttacks.Count; i++)
                 {
@@ -568,8 +598,8 @@ namespace Platformer
                 }
                 for (int i = 0; i < boomerangs.Count; i++)
                 {
-                    boomerangs[i].Update(MapDisplacement, map.Tiles);
-                    if (boomerangs[i].Hit)
+                    boomerangs[i].Update(MapDisplacement, new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y));
+                    if (boomerangs[i].Rectangle.Intersects(Hitbox(Position)) && boomerangs[i].Returning)
                     {
                         boomerangs.RemoveAt(i);
                         i--;

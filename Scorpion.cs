@@ -83,6 +83,18 @@ namespace Platformer
         public List<Slash> Slashes { get; set; } = new List<Slash>();
         public void Update(Vector2 displacement, Tile[,] tiles, Character player)
         {
+            //displacement
+            Position += displacement;
+            Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
+            for (int i = 0; i < Slashes.Count; i++)
+            {
+                Slashes[i].Update(displacement, tiles);
+                if (Slashes[i].Hit)
+                {
+                    Slashes.RemoveAt(i);
+                    i--;
+                }
+            }
             if (Health <= 0 && !Dying)
             {
                 Dying = true;
@@ -105,6 +117,10 @@ namespace Platformer
                     }
                     _time = 0;
                 }
+                return;
+            }
+            if (Globals.OutSideOfScreen(Hitbox(Position)))
+            {
                 return;
             }
             if (RightDirection)
@@ -157,9 +173,6 @@ namespace Platformer
 
             }
 
-            //displacement
-            Position += displacement;
-            Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
             //movement
             _velocity.Y += Globals.Gravity;
             //collision
@@ -193,15 +206,7 @@ namespace Platformer
                 }
             }
             Position = newPos;
-            for (int i = 0; i < Slashes.Count; i++)
-            {
-                Slashes[i].Update(displacement, tiles);
-                if (Slashes[i].Hit)
-                {
-                    Slashes.RemoveAt(i);
-                    i--;
-                }
-            }
+
         }
         public int Speed { get; set; } = 2;
         private Vector2 _velocity;

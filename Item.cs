@@ -5,15 +5,15 @@ namespace Platformer
 {
     public class Item
     {
-        private Texture2D _texture;
+        public Texture2D _texture;
         private Texture2D rectTex = Globals.Content.Load<Texture2D>("rectangle");
-        private Vector2 _position;
+        public Vector2 _position;
         public Vector2 Position { get {  return _position; } set { _position = value; } }
         private Rectangle _itemRect;
         private Vector2 origin = new(Globals.WindowSize.X/2, Globals.WindowSize.Y/2);
         private SpriteFont font = Globals.Font;
         public float _cost, _atk, _hp, _sta,_maxHp;
-        private string _description;
+        public string _description;
         private int _width, _height;
         public bool DescriptionOpen;
         private Button _buyBtn;

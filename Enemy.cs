@@ -83,8 +83,13 @@
         public bool IsAttacking { get; set; } = false;
         public bool Dying { get; set; } = false;
         public bool Died { get; set; } = false;
+
         public void Update(Vector2 displacement, Tile[,] tiles,Character player)
         {
+            //displacement
+            Position += displacement;
+            Hitbox = ToHitbox(Position);
+            Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
             if (Health<= 0&&!Dying) 
             { 
                 Dying = true;
@@ -107,6 +112,10 @@
                     }
                     _time = 0;
                 }
+                return;
+            }
+            if (Globals.OutSideOfScreen(ToHitbox(Position)))
+            {
                 return;
             }
             if (RightDirection)
@@ -148,9 +157,7 @@
                 _time = 0;
 
             }
-            //displacement
-            Position += displacement;
-            Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
+
             //movement
             _velocity.Y += Globals.Gravity;
             //collision

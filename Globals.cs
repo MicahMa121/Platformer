@@ -14,6 +14,10 @@ namespace Platformer
         public static float Gravity { get; set; } = 1;
         public static int TileSize { get; set; } 
         public static bool Pause { get; set; } = false;
+        public static bool OutSideOfScreen(Rectangle rectangle)
+        {
+            return (rectangle.Top >= WindowSize.Y) || (rectangle.Left >= WindowSize.X) || (rectangle.Bottom <= 0)||(rectangle.Right <= 0) ;
+        }
         public static void Update(GameTime gt)
         {
             Time = (float)gt.ElapsedGameTime.TotalSeconds;

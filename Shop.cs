@@ -50,10 +50,11 @@ namespace Platformer
             ItemPosition = new(sword.Rectangle.Center.X, sword.Rectangle.Bottom + 5 * height);
             Item _water = new(Globals.Content.Load<Texture2D>("water"), Vector2.Zero, 100, 1, 5, 5, 0, "Clean water\nGulp...Gulp...Gulp...\n\nAtk Bonus: 1\nHp Increase: 5",null,null);
             Item _HpPotion = new(Globals.Content.Load<Texture2D>("hpPotion"), Vector2.Zero, 100, 0, 0, 50, 0, "Health Potion\n\nRestores Your Health, No Special Effects\nHealth Recover: 50",null,null);
-            Item _scythe = new(Globals.Content.Load<Texture2D>("scythe"), Vector2.Zero, 2500, 25, -25, 0, 10, "Scythe\nWeapon of a Past Shinigami\nBecareful!\nDon't Let the Demons Scare You!\n\nAtk Bonus: 25\nStamina Increase:10\nHP Decrease: -25",null,"firepunch");
+            Item _scythe = new(Globals.Content.Load<Texture2D>("scythe"), Vector2.Zero, 2500, 25, -25, 0, 10, "Scythe\nWeapon of a Past Shinigami\nBecareful!\nSacrifice Your Health to Unleash the Power\n\nSpecial Skill(X): FirePunch\nAtk Bonus: 25\nStamina Increase:10",null,"firepunch");
             Item dagger = new(Globals.Content.Load<Texture2D>("dagger"), Vector2.Zero, 100, 3, -10, 0, 0, "Black Dagger\nNo Pain, No Gain\nIncrease ATK by Decreasing MAXHP\n\nAtk Bonus: 3\nHp Decrease: -10",null,null);
             Item boot = new(Globals.Content.Load<Texture2D>("boot"), Vector2.Zero, 100, 0, 5, 5, 5, "Swift Boot\nIncrease HP and Stamina \nI think I might be flash...\n\nStamina Increase: 5\nHp Increase: 5",null,null);
-            Item excalibur = new(Globals.Content.Load<Texture2D>("excalibur"), Vector2.Zero, 500, 10, 0, 0, 5, "EXCALIBURR\nFreshly Pulled from a Stone\n\nAtk Bonus: 10\nStamina Increase: 5","Slash",null);
+            Item excalibur = new(Globals.Content.Load<Texture2D>("excalibur"), Vector2.Zero, 500, 10, 0, 0, 5, "EXCALIBURR\nFreshly Pulled from a Stone\n\nCommon Skill(Z): Slash\nAtk Bonus: 10\nStamina Increase: 5", "Slash",null);
+            Item banana = new(Globals.Content.Load<Texture2D>("banana"), Vector2.Zero, 500, 0, 100, 100, 5, "Strange Banana\nWhat If I Can Throw A Banana\n\nCommon Skill(Z): BanAna\nHP Increase: 100\nStamina Increase: 5", "BanAna", null);
 
             Items.Add(_water);
             Items.Add(_HpPotion);
@@ -61,20 +62,18 @@ namespace Platformer
             Items.Add(dagger);
             Items.Add(boot);
             Items.Add(excalibur);
+            Items.Add(banana);
 
             RefreshShop();
         }
         public void RefreshShop()
         {
             ShopItems.Clear();
-            foreach (var item in Items)
-            {
-                item.Sold = false;
-            }
             for (int i = 0; i < 5; i++)
             {
                 Item item = Items[_gen.Next(0, Items.Count)];
-                ShopItems.Add(item);
+                Item clone = new(item._texture, item.Position, item._cost, item._atk, item._maxHp, item._hp, item._sta, item._description, item._skillz, item._skillx);
+                ShopItems.Add(clone);
                 ShopItems[i].Position = new(ItemPosition.X +Globals.WindowSize.X * 3 / 20*(4-i), ItemPosition.Y);
             }
         }
