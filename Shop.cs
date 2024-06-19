@@ -55,6 +55,7 @@ namespace Platformer
             Item boot = new(Globals.Content.Load<Texture2D>("boot"), Vector2.Zero, 100, 0, 5, 5, 5, "Swift Boot\nIncrease HP and Stamina \nI think I might be flash...\n\nStamina Increase: 5\nHp Increase: 5",null,null);
             Item excalibur = new(Globals.Content.Load<Texture2D>("excalibur"), Vector2.Zero, 500, 10, 0, 0, 5, "EXCALIBURR\nFreshly Pulled from a Stone\n\nCommon Skill(Z): Slash\nAtk Bonus: 10\nStamina Increase: 5", "Slash",null);
             Item banana = new(Globals.Content.Load<Texture2D>("Banana"), Vector2.Zero, 500, 0, 100, 100, 5, "Strange Banana\nWhat If I Can Throw A Banana\n\nCommon Skill(Z): BanAna\nHP Increase: 100\nStamina Increase: 5", "BanAna", null);
+            Item blueberry = new(Globals.Content.Load<Texture2D>("blueberryslingshot"), Vector2.Zero, 500, 5, 50, 50, 0, "Strange Banana\nWhat If I Can Throw A Banana\n\nCommon Skill(Z): BanAna\nHP Increase: 100\nStamina Increase: 5", "BlueBerrySlingShot", null);
 
             Items.Add(_water);
             Items.Add(_HpPotion);

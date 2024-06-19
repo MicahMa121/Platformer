@@ -316,7 +316,7 @@ namespace Platformer
                 }
             }
             _velocity.X = 0;
-            if (!Jumped && !Attacking&& !Hurt&&!Casting&&!Dashing&&!SkillAttacking)
+            if (!Jumped && !Attacking&& !Hurt&&!Casting&&!Dashing&&!SkillAttacking&&!IsClimbing)
                 Idle = true;
             //States
             if (!Globals.Pause && !Reviving)
@@ -420,15 +420,15 @@ namespace Platformer
                     _count = 0;
                     Stamina -= 25;
                 }
-                bool gravity = true;
+                bool ladder = true;
                 foreach (var item in map.Ladders)
                 {
                     if (item.Rectangle.Intersects(Hitbox(Position)))
                     {
-                        gravity = false; break;
+                        ladder = false; break;
                     }
                 }
-                if (gravity)
+                if (ladder)
                 {
 
                     if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
@@ -577,17 +577,33 @@ namespace Platformer
                     newHitbox = Hitbox(new(Position.X, newPos.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
-                        if (_velocity.Y >= 0)
+                        if (IsClimbing)
                         {
-                            newPos.Y = collider.Rectangle.Top - Rectangle.Height;
-                            _velocity.Y = 0;
+                            
+                            if (Hitbox(Position).Top<= collider.Rectangle.Bottom&& 10 >= -Hitbox(Position).Top + collider.Rectangle.Bottom)
+                            {
+                                newPos += new Vector2(0, Speed);
+                            }
+                            else
+                            {
+                                newPos.Y = collider.Rectangle.Top - Globals.TileSize;
+                            }
                         }
-                        else if (_velocity.Y <= 0)
+                        else
                         {
-                            newPos.Y = collider.Rectangle.Bottom - (Rectangle.Height-1-newHitbox.Height);
+                            if (_velocity.Y >= 0)
+                            {
+                                newPos.Y = collider.Rectangle.Top - Rectangle.Height;
+                                _velocity.Y = 0;
+                            }
+                            else if (_velocity.Y < 0)
+                            {
+                                newPos.Y = collider.Rectangle.Bottom - (Rectangle.Height - 1 - newHitbox.Height);
+                            }
                         }
                     }
                 }
+
                 foreach (var collider in map.Platforms)
                 {
                     Rectangle prevHitbox = Hitbox(Position);
