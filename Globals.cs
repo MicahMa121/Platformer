@@ -16,7 +16,7 @@ namespace Platformer
         public static bool Pause { get; set; } = false;
         public static bool OutSideOfScreen(Rectangle rectangle)
         {
-            return (rectangle.Top >= WindowSize.Y) || (rectangle.Left >= WindowSize.X) || (rectangle.Bottom <= 0)||(rectangle.Right <= 0) ;
+            return (rectangle.Top >= WindowSize.Y*3/2) || (rectangle.Left >= WindowSize.X*3/2) || (rectangle.Bottom <= -WindowSize.Y/2)||(rectangle.Right <= -WindowSize.X/2) ;
         }
         public static void Update(GameTime gt)
         {

@@ -84,7 +84,7 @@
         public bool Dying { get; set; } = false;
         public bool Died { get; set; } = false;
 
-        public void Update(Vector2 displacement, Tile[,] tiles,Character player)
+        public void Update(Vector2 displacement, Tile[,] tiles,List<Platform> Platforms,Character player)
         {
             //displacement
             Position += displacement;
@@ -195,6 +195,19 @@
                     else if (_velocity.Y < 0)
                     {
                         newPos.Y = collider.Rectangle.Bottom;
+                    }
+                }
+            }
+            foreach (var collider in Platforms)
+            {
+                Rectangle prevHitbox = Hitbox;
+                newHitbox = ToHitbox(new(Position.X, newPos.Y));
+                if (newHitbox.Intersects(collider.Rectangle) && prevHitbox.Bottom <= collider.Position.Y)
+                {
+                    if (_velocity.Y >= 0)
+                    {
+                        newPos.Y = collider.Rectangle.Top - 67;
+                        _velocity.Y = 0;
                     }
                 }
             }

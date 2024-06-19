@@ -26,7 +26,7 @@ namespace Platformer
         public bool EditOpen = false;
         private Button _left;
         private Button _right;
-        public Image Soil, Enemy, Treasure,Portal,Scorpion;
+        public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder;
         public List<Image> Images = new List<Image>();
         public UserInterface()
         {
@@ -59,7 +59,9 @@ namespace Platformer
             Treasure = new(Globals.Content.Load<Texture2D>("treasure"), Rectangle(side, side, new Vector2(Origin.X + 50, 570)), SpriteEffects.None);
             Portal = new(Globals.Content.Load<Texture2D>("portal"), Rectangle(side, side, new Vector2(Origin.X + 150, 570)), SpriteEffects.None);
             Scorpion = new(Globals.Content.Load<Texture2D>("scorpion"), Rectangle(side, side, new Vector2(Origin.X + 250, 570)), SpriteEffects.None);
-            Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);
+            Platform = new(Globals.Content.Load<Texture2D>("platform"), Rectangle(side, side, new Vector2(Origin.X + 350, 570)), SpriteEffects.None);
+            Ladder = new(Globals.Content.Load<Texture2D>("ladder"), Rectangle(side, side, new Vector2(Origin.X + 450, 570)), SpriteEffects.None);
+            Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);Images.Add(Platform);Images.Add(Ladder);
         }
         public int PreviousLevel { get; set; }
         public void Update(Map map)
@@ -189,6 +191,26 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                         continue;
                                     }
                                 }
+                                foreach (var item in map.Platforms)
+                                {
+                                    if (empty &&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X, (int)item.Position.Y, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('6');
+                                        continue;
+                                    }
+                                }
+                                foreach (var item in map.Ladders)
+                                {
+                                    if (empty &&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X, (int)item.Position.Y, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('7');
+                                        continue;
+                                    }
+                                }
                             }
                             if (empty)
                                 writer.Write('0');
@@ -255,6 +277,14 @@ _right.Rectangle(_left.Width, _left.Height).Contains(InputManager.MouseRectangle
                 else if (Scorpion.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Scorpion))
                 {
                     MouseState = "scorpion";
+                }
+                else if (Platform.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Platform))
+                {
+                    MouseState = "platform";
+                }
+                else if (Ladder.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Ladder))
+                {
+                    MouseState = "ladder";
                 }
             }
         }

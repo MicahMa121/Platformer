@@ -112,6 +112,7 @@ namespace Platformer
         private float _enrageDuration = 0;
         public bool Enrage = false;
         public bool SkillAttacking = false;
+        public bool IsClimbing = false;
         public void Update(Map map)
         {
             //Textures
@@ -209,7 +210,11 @@ namespace Platformer
                     Speed = 5;
                 }
                 Texture = Textures[(int)States][_count];
-                _count++;
+                if (!IsClimbing||InputManager.IsKeyPressed(Keys.S)||InputManager.IsKeyPressed(Keys.W) || InputManager.IsKeyPressed(Keys.A) || InputManager.IsKeyPressed(Keys.D))
+                {
+                    _count++;
+                }
+
                 _time = 0;
 
             }
@@ -415,20 +420,62 @@ namespace Platformer
                     _count = 0;
                     Stamina -= 25;
                 }
-                if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
+                bool gravity = true;
+                foreach (var item in map.Ladders)
                 {
-                    _velocity.Y = -15;
-
-                    Stamina -= 20;
-                    if (!Casting)
+                    if (item.Rectangle.Intersects(Hitbox(Position)))
                     {
-                        States = CharacterStates.Jump;
-                        Idle = false;
-                        Jumped = true;
-                        Attacking = false;
-                        SkillAttacking = false;
-                        Hurt = false;
+                        gravity = false; break;
                     }
+                }
+                if (gravity)
+                {
+
+                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
+                    {
+                        _velocity.Y = -15;
+
+                        Stamina -= 20;
+                        if (!Casting)
+                        {
+                            States = CharacterStates.Jump;
+                            Idle = false;
+                            Jumped = true;
+                            Attacking = false;
+                            SkillAttacking = false;
+                            Hurt = false;
+                        }
+                    }
+                    IsClimbing = false;
+                    if (States == CharacterStates.Climb)
+                    {
+                        States = CharacterStates.Idle;
+                    }
+                }
+                else
+                {
+                    if (InputManager.IsKeyPressed(Keys.W))
+                    {
+                        Position += new Vector2(0,-Speed);
+                        States = CharacterStates.Climb;
+                        Idle = false;
+                        IsClimbing = true;
+                        _velocity.Y = 0;
+                        Jumped = false;
+                    }
+                    else if (InputManager.IsKeyPressed(Keys.S))
+                    {
+                        Position += new Vector2(0,Speed);
+                        States = CharacterStates.Climb;
+                        Idle = false;
+                        IsClimbing = true;
+                        _velocity.Y = 0;
+                        Jumped = false;
+                    }
+                }
+                if (!IsClimbing)
+                {
+                    _velocity.Y += Globals.Gravity;
                 }
                 if (InputManager.IsKeyClicked(Keys.Space))
                 {
@@ -502,7 +549,7 @@ namespace Platformer
                         i--;
                     }
                 }
-                _velocity.Y += Globals.Gravity;
+
                 if (Idle)
                 {
                     States = CharacterStates.Idle;
@@ -530,14 +577,27 @@ namespace Platformer
                     newHitbox = Hitbox(new(Position.X, newPos.Y));
                     if (newHitbox.Intersects(collider.Rectangle))
                     {
-                        if (_velocity.Y > 0)
+                        if (_velocity.Y >= 0)
                         {
                             newPos.Y = collider.Rectangle.Top - Rectangle.Height;
                             _velocity.Y = 0;
                         }
-                        else if (_velocity.Y < 0)
+                        else if (_velocity.Y <= 0)
                         {
                             newPos.Y = collider.Rectangle.Bottom - (Rectangle.Height-1-newHitbox.Height);
+                        }
+                    }
+                }
+                foreach (var collider in map.Platforms)
+                {
+                    Rectangle prevHitbox = Hitbox(Position);
+                    newHitbox = Hitbox(new(Position.X, newPos.Y));
+                    if (newHitbox.Intersects(collider.Rectangle)&&prevHitbox.Bottom <= collider.Position.Y)
+                    {
+                        if (_velocity.Y > 0)
+                        {
+                            newPos.Y = collider.Rectangle.Top - Rectangle.Height;
+                            _velocity.Y = 0;
                         }
                     }
                 }
