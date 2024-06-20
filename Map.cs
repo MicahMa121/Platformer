@@ -386,8 +386,26 @@ namespace Platformer
                             Trails.Add(image);
                         }
                     }
+
                 }
                 enemy.Update(displacement, Tiles,Platforms, Player);
+                if (enemy.Poisoned > 0)
+                {
+                    enemy.PoisonedSpeed += Globals.Time;
+                    if (enemy.PoisonedSpeed > 1)
+                    {
+                        enemy.Poisoned += -1;
+                        enemy.Health += -(int)0.1f * Player.Atk;
+                        DamageText text = new(Convert.ToString((int)0.1f * Player.Atk), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
+                        DamageTexts.Add(text);
+                        if (enemy.Poisoned == 0)
+                        {
+                            enemy.Color = Color.White;
+                        }
+                        enemy.PoisonedSpeed = 0;
+                    }
+
+                }
             }
             for (int i = 0; i < Scorpions.Count; i++)
             {
@@ -507,6 +525,23 @@ namespace Platformer
                             scorpion._count = 0;
                             scorpion.Speed = 0;
                         }
+                    }
+                    if (scorpion.Poisoned > 0)
+                    {
+                        scorpion.PoisonedSpeed += Globals.Time;
+                        if (scorpion.PoisonedSpeed > 1)
+                        {
+                            scorpion.Poisoned += -1;
+                            scorpion.Health += (int)-0.1f * Player.Atk;
+                            DamageText text = new(Convert.ToString((int)0.1f * Player.Atk), new(scorpion.Rectangle.Center.X, scorpion.Position.Y), Color.Turquoise);
+                            DamageTexts.Add(text);
+                            if (scorpion.Poisoned == 0)
+                            {
+                                scorpion.Color = Color.White;
+                            }
+                            scorpion.PoisonedSpeed = 0;
+                        }
+
                     }
                 }
                 scorpion.Update(displacement, Tiles, Platforms);

@@ -107,6 +107,7 @@ namespace Platformer
         public string SkillZ { get; set; }
         public string SkillX { get; set; }
         public List<ScytheAttack> scytheAttacks = new List<ScytheAttack>();
+        public List<Berry> berries = new List<Berry>();
         public int MoveIndex = 0;
         private float _cooldown = 0;
         private float _enrageDuration = 0;
@@ -195,6 +196,26 @@ namespace Platformer
                             Boomerang slash = new(Globals.Content.Load<Texture2D>("banana"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y +10 ), slashV, angle, SpriteEffect);
                             boomerangs.Add(slash);
                         }
+                        if (SkillZ == "Blubberry")
+                        {
+                            _velocity.Y += -15;
+                            for (int i =  0; i < (int)MaxHp/30; i++)
+                            {
+                                Vector2 slashV = Vector2.Zero;
+                                if (RightDirection)
+                                {
+                                    slashV = new Vector2(Speed * 2, 5-i);
+                                }
+                                else
+                                {
+                                    slashV = new Vector2(-Speed * 2, 5-i);
+                                }
+                                Berry berry = new(Globals.Content.Load<Texture2D>("berry"), new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y), slashV, SpriteEffect, Globals.TileSize / 4, Globals.TileSize / 4,(int)MaxHp/50);
+                                berries.Add(berry);
+                            }
+
+                        }
+
                     }
                     if (States == CharacterStates.Attack2)
                     {
@@ -243,6 +264,43 @@ namespace Platformer
                         slash.Hit = true;
                         enemy.Health -= Atk * 4;
                         DamageText text = new(Convert.ToString(map.Player.Atk * 4), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.AliceBlue);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                        break;
+                    }
+                }
+            }
+            foreach (var slash in berries)
+            {
+                foreach (var enemy in map.Enemies)
+                {
+                    if (enemy.Dying) continue;
+                    if (!slash.Hit && slash.Rectangle.Intersects(enemy.Rectangle))
+                    {
+                        slash.Hit = true;
+                        enemy.Health -= (int)Atk * 0.5f;
+                        enemy.Poisoned += 5;
+                        enemy.Color = Color.DeepSkyBlue;
+                        DamageText text = new(Convert.ToString((int)Atk * 0.5f), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy.States = EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                        break;
+                    }
+                }
+                foreach (var enemy in map.Scorpions)
+                {
+                    if (enemy.Dying) continue;
+                    if (!slash.Hit && slash.Rectangle.Intersects(enemy.Rectangle))
+                    {
+                        slash.Hit = true;
+                        enemy.Health -= (int)Atk * 0.5f;
+                        enemy.Poisoned += 5;
+                        enemy.Color = Color.DeepSkyBlue;
+                        DamageText text = new(Convert.ToString((int)Atk * 0.5f), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
                         map.DamageTexts.Add(text);
                         enemy.Hurt = true;
                         enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
@@ -324,7 +382,7 @@ namespace Platformer
                 if (InputManager.IsKeyPressed(Keys.D))
                 {
                     _velocity.X = Speed;
-                    if (!Jumped && !Attacking && !Hurt && !Casting&&!SkillAttacking)
+                    if (!Jumped && !Attacking && !Hurt && !Casting&&!SkillAttacking && !IsClimbing)
                         States = CharacterStates.Run;
                     if (!RightDirection)
                     {
@@ -336,7 +394,7 @@ namespace Platformer
                 else if (InputManager.IsKeyPressed(Keys.A))
                 {
                     _velocity.X = -Speed;
-                    if (!Jumped && !Attacking && !Hurt && !Casting && !SkillAttacking)
+                    if (!Jumped && !Attacking && !Hurt && !Casting && !SkillAttacking&&!IsClimbing)
                         States = CharacterStates.Run;
                     if (RightDirection)
                     {
@@ -356,7 +414,7 @@ namespace Platformer
                         _velocity.X = -Speed;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f && SkillZ != "Locked")
+                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f && SkillZ != "Locked" && !IsClimbing)
                 {
                     if (!Casting)
                     {
@@ -371,7 +429,7 @@ namespace Platformer
                         Stamina -= 25;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.X) && Stamina >= 75f && SkillX != "Locked")
+                if (InputManager.IsKeyClicked(Keys.X) && Stamina >= 75f && SkillX != "Locked" && !IsClimbing)
                 {
                     if (!Attacking && !SkillAttacking)
                         _count = 0;
@@ -405,7 +463,7 @@ namespace Platformer
                         }
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f && !Dashing)
+                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f && !Dashing && !IsClimbing)
                 {
                     Dashing = true;
                     Speed = 10;
@@ -431,7 +489,7 @@ namespace Platformer
                 if (ladder)
                 {
 
-                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
+                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f && !IsClimbing)
                     {
                         _velocity.Y = -15;
 
@@ -477,7 +535,7 @@ namespace Platformer
                 {
                     _velocity.Y += Globals.Gravity;
                 }
-                if (InputManager.IsKeyClicked(Keys.Space))
+                if (InputManager.IsKeyClicked(Keys.Space) && !IsClimbing)
                 {
                     if (!Attacking && !SkillAttacking)
                         _count = 0;
@@ -608,12 +666,16 @@ namespace Platformer
                 {
                     Rectangle prevHitbox = Hitbox(Position);
                     newHitbox = Hitbox(new(Position.X, newPos.Y));
-                    if (newHitbox.Intersects(collider.Rectangle)&&prevHitbox.Bottom <= collider.Position.Y)
+                    if (newHitbox.Intersects(collider.Top))
                     {
-                        if (_velocity.Y > 0)
+                        if (_velocity.Y >= 0 && prevHitbox.Bottom <= collider.Position.Y)
                         {
                             newPos.Y = collider.Rectangle.Top - Rectangle.Height;
                             _velocity.Y = 0;
+                        }
+                        if (IsClimbing )
+                        {
+                            newPos.Y = collider.Rectangle.Top - Rectangle.Height;
                         }
                     }
                 }
@@ -672,6 +734,15 @@ namespace Platformer
                         i--;
                     }
                 }
+                for (int i = 0; i < berries.Count; i++)
+                {
+                    berries[i].Update(MapDisplacement, map.Tiles,map.Platforms);
+                    if (berries[i].Hit)
+                    {
+                        berries.RemoveAt(i);
+                        i--;
+                    }
+                }
                 for (int i = 0; i < boomerangs.Count; i++)
                 {
                     boomerangs[i].Update(MapDisplacement, new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y));
@@ -721,6 +792,10 @@ namespace Platformer
                 boomerang.Draw();
             }
             foreach (var item in scytheAttacks)
+            {
+                item.Draw();
+            }
+            foreach (var item in berries)
             {
                 item.Draw();
             }

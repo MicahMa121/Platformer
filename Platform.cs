@@ -7,6 +7,7 @@
         private Rectangle _rect;
         public Vector2 Position { get { return _position; } }
         public Rectangle Rectangle { get { return _rect; } }
+        public Rectangle Top {  get { return new(_rect.X,_rect.Y,_rect.Width,1); } }
         public Platform(Texture2D texture, Rectangle rectangle)
         {
             _position = new(rectangle.X,rectangle.Y);

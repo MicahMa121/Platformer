@@ -8,6 +8,8 @@
         public Vector2 Position { get; protected set; }
         public Vector2 Origin { get; protected set; }
         public Color Color { get; set; } = Color.White;
+        public int Poisoned { get; set; } = 0;
+        public float PoisonedSpeed { get; set; } = 0;
         public Rectangle Rectangle { get; set; }
         public float Atk { get; set; } = 5f*Globals.Level;
         

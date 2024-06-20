@@ -35,7 +35,6 @@ namespace Platformer
         }
         public void Update(Vector2 displacement, Vector2 playerLocation)
         {
-            Debug.WriteLine(velocity.X);
             if (Returning)
             {
                 velocity = playerLocation - position;
