@@ -98,6 +98,7 @@ namespace Platformer
                 Player.Enrage = false;
                 Player.SkillZ = "Locked";
                 Player.SkillX = "Locked";
+                Player.capples.Clear();
             }
             if (shop != null)
             {
@@ -233,9 +234,7 @@ namespace Platformer
                         if (Restart.ButtonPressed())
                         {
                             NewGame();
-                            Revive();
-                            Player.States = Character.CharacterStates.Idle;
-
+                            Revive();!
                             Restart = null;
                             return;
                         }
@@ -268,7 +267,7 @@ namespace Platformer
                 if (!coin.Collected&&coin.Rectangle.Intersects(Player.Hitbox(Player.Position)))
                 {
                     coin.Collected = true;
-                    Money += coin.Value;
+                    Money += coin.Value *5*Globals.Level;
                     ShopBtn.Text = "$ " + Money;
 
                 }
@@ -395,8 +394,8 @@ namespace Platformer
                     if (enemy.PoisonedSpeed > 1)
                     {
                         enemy.Poisoned += -1;
-                        enemy.Health += -(int)0.1f * Player.Atk;
-                        DamageText text = new(Convert.ToString((int)0.1f * Player.Atk), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
+                        enemy.Health += -(int)(0.1f * Player.Atk);
+                        DamageText text = new(Convert.ToString((int)(0.1f * Player.Atk)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
                         DamageTexts.Add(text);
                         if (enemy.Poisoned == 0)
                         {
@@ -532,8 +531,8 @@ namespace Platformer
                         if (scorpion.PoisonedSpeed > 1)
                         {
                             scorpion.Poisoned += -1;
-                            scorpion.Health += (int)-0.1f * Player.Atk;
-                            DamageText text = new(Convert.ToString((int)0.1f * Player.Atk), new(scorpion.Rectangle.Center.X, scorpion.Position.Y), Color.Turquoise);
+                            scorpion.Health += (int)(-0.1f * Player.Atk);
+                            DamageText text = new(Convert.ToString((int)(0.1f * Player.Atk)), new(scorpion.Rectangle.Center.X, scorpion.Position.Y), Color.Turquoise);
                             DamageTexts.Add(text);
                             if (scorpion.Poisoned == 0)
                             {
@@ -845,6 +844,10 @@ namespace Platformer
             foreach (var coin in Coins)
             {
                 coin.Draw() ;
+            }
+            foreach (var item in Player.capples)
+            {
+                item.Draw();
             }
             foreach (var text in DamageTexts)
             {

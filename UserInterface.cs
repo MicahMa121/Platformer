@@ -83,7 +83,7 @@ namespace Platformer
                         }
                         LevelBtn.Text = "level " + Globals.Level;
                         map.NewGame();
-                        map.Player.Health = map.Player.MaxHp;
+                        
                         PreviousLevel = Globals.Level;
                         break;
                     }

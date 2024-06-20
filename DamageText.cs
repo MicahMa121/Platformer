@@ -8,10 +8,11 @@ namespace Platformer
         private string _text;
         private Vector2 _position;
         private Color _color;
+        private Random gen = new Random();
         public DamageText(string text, Vector2 position, Color color)
         {
             _text = text;
-            _position = position;
+            _position = position+ new Vector2(gen.Next(-10, 11),gen.Next(-10,11));
             _color = color;
         }
         public void Update(Vector2 displacement)

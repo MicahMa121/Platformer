@@ -1,4 +1,6 @@
-﻿namespace Platformer
+﻿using System.Text;
+
+namespace Platformer
 {
     public class Image
     {

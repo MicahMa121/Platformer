@@ -1,6 +1,8 @@
 ﻿
 
+using System;
 using System.Diagnostics;
+using System.Threading;
 using static Platformer.Enemy;
 
 namespace Platformer
@@ -108,6 +110,7 @@ namespace Platformer
         public string SkillX { get; set; }
         public List<ScytheAttack> scytheAttacks = new List<ScytheAttack>();
         public List<Berry> berries = new List<Berry>();
+        public List<Bomb> capples = new List<Bomb>();
         public int MoveIndex = 0;
         private float _cooldown = 0;
         private float _enrageDuration = 0;
@@ -239,6 +242,114 @@ namespace Platformer
                 _time = 0;
 
             }
+            foreach(var item in capples)
+            {
+                item.Update(MapDisplacement);
+                if (item.Exploded) continue;
+                item.Timer += Globals.Time;
+                item.Width += -0.4f;
+                if (item.Timer > 1)
+                {
+                    item.Count--;
+                    DamageText text = new(Convert.ToString(item.Count), new(item.Rectangle.Center.X, item.Position.Y-item.Width/2), Color.Black);
+                    map.DamageTexts.Add(text);
+
+                    item.Timer = 0;
+                    item.Width += Globals.TileSize;
+                    if (item.Count == 4)
+                    {
+                        item.Texture = Globals.Content.Load<Texture2D>("cappleEffect");
+                    }
+                    if (item.Count == 2)
+                    {
+                        item.Texture = Globals.Content.Load<Texture2D>("cappleExplode");
+                    }
+                    if (item.Count<= 0)
+                    {
+                        item.Exploded = true;
+                        item.Texture = Globals.Content.Load<Texture2D>("cappleEnd");
+                        foreach (Tile tile in map.Tiles)
+                        {
+                            if (!tile.Visible) continue;
+                            if (tile.Rectangle.Intersects(item.Rectangle))
+                            {
+                                tile.Visible = false;
+                            }
+                        }
+                        if (item.Rectangle.Intersects(Hitbox(Position)))
+                        {
+                            Health -= Atk * 10;
+                            DamageText text1 = new(Convert.ToString(Atk*10), Position, Color.Orange);
+                            map.DamageTexts.Add(text1);
+                            States = CharacterStates.Hurt;
+                            Hurt = true;
+                            Idle = false;
+                            Attacking = false;
+                            Jumped = false;
+                            Casting = false;
+                        }
+                        foreach (var enemy in map.Enemies)
+                        {
+                            if (enemy.Dying) continue;
+                            if (item.Rectangle.Intersects(enemy.Rectangle))
+                            {
+                                enemy.Health -= Atk * 10;
+                                DamageText text1 = new(Convert.ToString(Atk * 10), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Orange);
+                                map.DamageTexts.Add(text1);
+                                enemy.Hurt = true;
+                                enemy.States = EnemyStates.Hurt;
+                                enemy.Speed = 0;
+                            }
+                        }
+                        foreach (var enemy in map.Scorpions)
+                        {
+                            if (enemy.Dying) continue;
+                            if (item.Rectangle.Intersects(enemy.Rectangle))
+                            {
+                                enemy.Health -= Atk * 10;
+                                DamageText text1 = new(Convert.ToString(Atk * 10), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Orange);
+                                map.DamageTexts.Add(text1);
+                                enemy.Hurt = true;
+                                enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
+                                enemy.Speed = 0;
+                            }
+                        }
+                        for (int i = 0; i< map.Platforms.Count;i++)
+                        {
+                            if (map.Platforms[i].Rectangle.Intersects(item.Rectangle))
+                            {
+                                map.Platforms.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                        for (int i = 0; i < map.Portals.Count; i++)
+                        {
+                            if (map.Portals[i].Rectangle.Intersects(item.Rectangle))
+                            {
+                                map.Portals.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                        for (int i = 0; i < map.Ladders.Count; i++)
+                        {
+                            if (map.Ladders[i].Rectangle.Intersects(item.Rectangle))
+                            {
+                                map.Ladders.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < capples.Count; i++)
+            {
+                if (!capples[i].Exploded) continue;
+                if (Globals.OutSideOfScreen(capples[i].Rectangle))
+                {
+                    capples.RemoveAt(i);
+                    i--;
+                }
+            }
             foreach (Slash slash in slashes)
             {
                 foreach (var enemy in map.Enemies)
@@ -280,10 +391,10 @@ namespace Platformer
                     if (!slash.Hit && slash.Rectangle.Intersects(enemy.Rectangle))
                     {
                         slash.Hit = true;
-                        enemy.Health -= (int)Atk * 0.5f;
+                        enemy.Health -= (int)(Atk * 0.5f);
                         enemy.Poisoned += 5;
                         enemy.Color = Color.DeepSkyBlue;
-                        DamageText text = new(Convert.ToString((int)Atk * 0.5f), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
+                        DamageText text = new(Convert.ToString((int)(Atk * 0.5f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
                         map.DamageTexts.Add(text);
                         enemy.Hurt = true;
                         enemy.States = EnemyStates.Hurt;
@@ -300,7 +411,7 @@ namespace Platformer
                         enemy.Health -= (int)Atk * 0.5f;
                         enemy.Poisoned += 5;
                         enemy.Color = Color.DeepSkyBlue;
-                        DamageText text = new(Convert.ToString((int)Atk * 0.5f), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
+                        DamageText text = new(Convert.ToString((int)(Atk * 0.5f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
                         map.DamageTexts.Add(text);
                         enemy.Hurt = true;
                         enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
@@ -316,8 +427,8 @@ namespace Platformer
                     if (enemy.Dying) continue;
                     if (slash.Rectangle.Intersects(enemy.Rectangle)&&enemy.States != EnemyStates.Hurt)
                     {
-                        enemy.Health -= (int)Atk * 1.5f;
-                        Health += (int)MaxHp * 0.05f;
+                        enemy.Health -= (int)(Atk * 1.5f);
+                        Health += (int)(MaxHp * 0.05f);
                         DamageText text = new(Convert.ToString(Math.Round(Atk * 1.5f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.DarkRed);
                         map.DamageTexts.Add(text);
                         DamageText text1 = new(Convert.ToString(Math.Round(MaxHp * 0.05f)), Position, Color.Green);
@@ -332,8 +443,8 @@ namespace Platformer
                     if (enemy.Dying) continue;
                     if (slash.Rectangle.Intersects(enemy.Rectangle) && enemy.States != (Scorpion.EnemyStates)EnemyStates.Hurt)
                     {
-                        enemy.Health -= (int)Atk * 1.5f;
-                        Health += (int)MaxHp * 0.05f;
+                        enemy.Health -= (int)(Atk * 1.5f);
+                        Health += (int)(MaxHp * 0.05f);
                         DamageText text = new(Convert.ToString(Math.Round(Atk * 1.5f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.DarkRed);
                         map.DamageTexts.Add(text);
                         DamageText text1 = new(Convert.ToString(Math.Round(MaxHp * 0.05f)), Position, Color.Green);
@@ -351,8 +462,8 @@ namespace Platformer
                     if (enemy.Dying) continue;
                     if (slash.Rectangle.Intersects(enemy.Rectangle) && enemy.States != EnemyStates.Hurt)
                     {
-                        enemy.Health -= (int)MaxHp*0.05f;
-                        DamageText text = new(Convert.ToString(Math.Round((int)MaxHp * 0.05f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.GreenYellow);
+                        enemy.Health -= (int)(MaxHp*0.05f);
+                        DamageText text = new(Convert.ToString(Math.Round(MaxHp * 0.05f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.GreenYellow);
                         map.DamageTexts.Add(text);
                         enemy.Hurt = true;
                         enemy.States = EnemyStates.Hurt;
@@ -364,7 +475,7 @@ namespace Platformer
                     if (enemy.Dying) continue;
                     if (slash.Rectangle.Intersects(enemy.Rectangle) && enemy.States != (Scorpion.EnemyStates)EnemyStates.Hurt)
                     {
-                        enemy.Health -= (int)MaxHp * 0.05f;
+                        enemy.Health -= (int)(MaxHp * 0.05f);
                         DamageText text = new(Convert.ToString(Math.Round((int)MaxHp * 0.05f)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.GreenYellow);
                         map.DamageTexts.Add(text);
                         enemy.Hurt = true;
@@ -462,8 +573,16 @@ namespace Platformer
                             Health -= MaxHp / 2;
                         }
                     }
+                    if (SkillX == "Capple")
+                    {
+                        Bomb capple = new(Globals.Content.Load<Texture2D>("Le Capple"),
+                             new(Hitbox(Position).Center.X, Hitbox(Position).Center.Y),Globals.TileSize/2, SpriteEffects.None);
+                        capple.Timer = 0;
+                        capple.Count = 5;
+                        capples.Add(capple);
+                    }
                 }
-                if (InputManager.IsKeyClicked(Keys.Q) && Stamina >= 25f && !Dashing && !IsClimbing)
+                if ((InputManager.IsKeyClicked(Keys.LeftShift)||InputManager.IsKeyClicked(Keys.Q)) && Stamina >= 25f && !Dashing && !IsClimbing)
                 {
                     Dashing = true;
                     Speed = 10;
@@ -777,6 +896,7 @@ namespace Platformer
         }
         public void Draw()
         {
+
             if (Attacking)
             {
                 //Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
