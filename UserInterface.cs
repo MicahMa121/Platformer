@@ -28,6 +28,8 @@ namespace Platformer
         private Button _right;
         public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder;
         public List<Image> Images = new List<Image>();
+        public float atk = 5, hp = 100, maxhp = 100, stamina = 100,money = 0;
+        public string skillz = "Locked", skillx = "Locked";
         public UserInterface()
         {
             MouseState = null;
@@ -83,7 +85,12 @@ namespace Platformer
                         }
                         LevelBtn.Text = "level " + Globals.Level;
                         map.NewGame();
-                        
+                        atk = map.Player.Atk;
+                        hp = map.Player.Health;
+                        maxhp = map.Player.MaxHp;
+                        stamina = map.Player.MaxStamina;
+                        skillz = map.Player.SkillZ;
+                        skillx = map.Player.SkillX;
                         PreviousLevel = Globals.Level;
                         break;
                     }

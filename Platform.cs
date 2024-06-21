@@ -17,8 +17,8 @@
         public void Update(Vector2 displacememt)
         {
             _position += displacememt;
-            _rect.Offset(displacememt);
-
+            _rect.X = (int)Position.X;
+            _rect.Y = (int)Position.Y;
         }
         public void Draw()
         {

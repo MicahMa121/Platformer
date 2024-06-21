@@ -20,6 +20,10 @@ namespace Platformer
         {
             return _keyboardState.IsKeyDown(key)&&_prevKeyboardState.IsKeyUp(key);
         }
+        public static bool IsKeyReleased(Keys key)
+        {
+            return _keyboardState.IsKeyUp(key)&&_prevKeyboardState.IsKeyDown(key);
+        }
         public static void Update()
         {
             var mouseState = Mouse.GetState();

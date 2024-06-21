@@ -264,10 +264,14 @@ namespace Platformer
                     {
                         item.Texture = Globals.Content.Load<Texture2D>("cappleExplode");
                     }
+                    if (item.Count == 1)
+                    {
+                        //item.Texture = Globals.Content.Load<Texture2D>("cappleEnd");
+                    }
                     if (item.Count<= 0)
                     {
                         item.Exploded = true;
-                        item.Texture = Globals.Content.Load<Texture2D>("cappleEnd");
+                        item.Texture = Globals.Content.Load<Texture2D>("cappledestroy");
                         foreach (Tile tile in map.Tiles)
                         {
                             if (!tile.Visible) continue;
@@ -607,10 +611,13 @@ namespace Platformer
                 }
                 if (ladder)
                 {
-
-                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f && !IsClimbing)
+                    if (InputManager.IsKeyReleased(Keys.W))
                     {
-                        _velocity.Y = -15;
+                        _velocity.Y *= 0.4f;
+                    }
+                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
+                    {
+                        _velocity.Y = -20;
 
                         Stamina -= 20;
                         if (!Casting)

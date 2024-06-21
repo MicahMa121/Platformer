@@ -84,10 +84,14 @@ namespace Platformer
         {
             if (Player != null)
             {
-                Player.MaxHp = 100;
-                Player.Atk = 5;
-                Player.MaxStamina = 100;
-                Player.Health = Player.MaxHp;
+
+                Player.Atk = UserInterface.atk;
+                Player.Health = UserInterface.hp;
+                Player.MaxHp = UserInterface.maxhp;
+                Player.MaxStamina = UserInterface.stamina;
+                Player.SkillZ = UserInterface.skillz;
+                Player.SkillX = UserInterface.skillx;
+                Player.States = Character.CharacterStates.Idle;
                 Player.Death = false;
                 Player.Reviving = false;
                 Player.Attacking = false;
@@ -96,15 +100,13 @@ namespace Platformer
                 Player.Jumped = false;
                 Player.Hurt = false;
                 Player.Enrage = false;
-                Player.SkillZ = "Locked";
-                Player.SkillX = "Locked";
                 Player.capples.Clear();
             }
             if (shop != null)
             {
                 shop.RefreshShop();
             }
-            Money = 10000;
+            Money = (int)UserInterface.money;
             ShopBtn = new Button(new(500, 600), "$ " + Money);
         }
         public void NewGame()
@@ -234,7 +236,7 @@ namespace Platformer
                         if (Restart.ButtonPressed())
                         {
                             NewGame();
-                            Revive();!
+                            Revive();//
                             Restart = null;
                             return;
                         }
@@ -273,6 +275,11 @@ namespace Platformer
                 }
             }
             ShopBtn.Update();
+            if (InputManager.IsKeyPressed(Keys.H)&&InputManager.IsKeyPressed(Keys.M ))
+            {
+                Money += 1000;
+                ShopBtn.Text = "$ " + Money;
+            }
             for (int i = 0; i < Coins.Count; i++)
             {
                 if (Coins[i].Collected && Coins[i].Opacity <= 0f)
