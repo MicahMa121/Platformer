@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Platformer
@@ -191,15 +192,15 @@ namespace Platformer
             }
             else if (screen == Screen.load)
             {
-                GameRun();
                 Globals.Level = 2;
+                GameRun();
+
 
                 screen = Screen.game;
             }
             else if (screen == Screen.tutorial)
             {
                 GameUpdate();
-                Globals.Level = 1;
                 tutorial.Update(player.MapDisplacement);
                 if (Globals.Level != 1)
                 {
@@ -254,6 +255,7 @@ namespace Platformer
                 if (!tutorial.done && map.Money >= 100)
                 {
                     tutorial._image.Draw();
+                    tutorial._text .Draw();
                 }
 
             }

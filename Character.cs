@@ -201,7 +201,7 @@ namespace Platformer
                         }
                         if (SkillZ == "Blubberry")
                         {
-                            _velocity.Y += -15;
+
                             for (int i =  0; i < (int)MaxHp/30; i++)
                             {
                                 Vector2 slashV = Vector2.Zero;
@@ -542,6 +542,10 @@ namespace Platformer
                         SkillAttacking = false;
                         Jumped = false;
                         Stamina -= 25;
+                        if (SkillZ == "Blubberry")
+                        {
+                            _velocity.Y += -20;
+                        }
                     }
                 }
                 if (InputManager.IsKeyClicked(Keys.X) && Stamina >= 75f && SkillX != "Locked" && !IsClimbing)
@@ -600,7 +604,7 @@ namespace Platformer
                     Color = new Color(Color.White, 0.5f);
                     _count = 0;
                     Stamina -= 25;
-                }
+                    }
                 bool ladder = true;
                 foreach (var item in map.Ladders)
                 {

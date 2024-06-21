@@ -1,5 +1,6 @@
 ﻿
 
+using System.Diagnostics;
 using System.IO;
 
 namespace Platformer
@@ -57,19 +58,20 @@ namespace Platformer
         {
             Images.Clear();
             int side = Globals.TileSize;
-            Soil = new(Globals.Content.Load<Texture2D>("Soil"), Rectangle(side, side, new Vector2(Origin.X - 150, 570)), SpriteEffects.None);
+            Soil = new(Globals.Content.Load<Texture2D>("grass_block"), Rectangle(side, side, new Vector2(Origin.X - 150, 570)), SpriteEffects.None);
             Enemy = new(Globals.Content.Load<Texture2D>("Dog1"), Rectangle(side, side, new Vector2(Origin.X - 50, 570)), SpriteEffects.None);
             Treasure = new(Globals.Content.Load<Texture2D>("treasure"), Rectangle(side, side, new Vector2(Origin.X + 50, 570)), SpriteEffects.None);
             Portal = new(Globals.Content.Load<Texture2D>("portal"), Rectangle(side, side, new Vector2(Origin.X + 150, 570)), SpriteEffects.None);
             Scorpion = new(Globals.Content.Load<Texture2D>("scorpion"), Rectangle(side, side, new Vector2(Origin.X + 250, 570)), SpriteEffects.None);
             Platform = new(Globals.Content.Load<Texture2D>("platform"), Rectangle(side, side, new Vector2(Origin.X + 350, 570)), SpriteEffects.None);
             Ladder = new(Globals.Content.Load<Texture2D>("ladder"), Rectangle(side, side, new Vector2(Origin.X + 450, 570)), SpriteEffects.None);
-            Background = new(Globals.Content.Load<Texture2D>("dirtbackground"), Rectangle(side, side, new Vector2(Origin.X + 550, 570)), SpriteEffects.None);
+            Background = new(Globals.Content.Load<Texture2D>("cave_wall"), Rectangle(side, side, new Vector2(Origin.X + 550, 570)), SpriteEffects.None);
             Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);Images.Add(Platform);Images.Add(Ladder);Images.Add(Background);
         }
         public int PreviousLevel { get; set; }
         public void Update(Map map)
         {
+            Debug.WriteLine(money);
             foreach (Button button in Buttons)
                 button.Update();
             _left.Update();
@@ -83,9 +85,9 @@ namespace Platformer
                         Globals.Level++;
                         if (Globals.Level > 6)
                         {
-                            Globals.Level = 2;
+                            Globals.Level = 1;
                         }
-                        LevelBtn.Text = "level " + (Globals.Level - 1);
+                        LevelBtn.Text = "level " + (Globals.Level );
                         map.NewGame();
                         atk = map.Player.Atk;
                         hp = map.Player.Health;
@@ -93,6 +95,7 @@ namespace Platformer
                         stamina = map.Player.MaxStamina;
                         skillz = map.Player.SkillZ;
                         skillx = map.Player.SkillX;
+                        money = map.Money;
                         PreviousLevel = Globals.Level;
                         break;
                     }
@@ -116,9 +119,9 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                     Globals.Level++;
                     if (Globals.Level > 6)
                     {
-                        Globals.Level = 2;
+                        Globals.Level = 1;
                     }
-                    LevelBtn.Text = "level " + (Globals.Level-1);
+                    LevelBtn.Text = "level " + (Globals.Level);
                 }
                 if (InputManager.MouseClicked &&
     EditLevelBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
@@ -138,7 +141,10 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                     UIrect = Rectangle(0, 0, Origin);
                     map.NewGame();
                     map.Revive();
-                    tuto.Refresh();
+                    if (tuto != null)
+                    {
+                        tuto.Refresh();
+                    }
                     PreviousLevel = Globals.Level;
                 }
                 if (InputManager.MouseClicked &&

@@ -827,7 +827,7 @@ namespace Platformer
                                 rect = tile.Rectangle; break;
                             }
                         }
-                        Image item = new(Globals.Content.Load<Texture2D>("dirtbackground"), rect,SpriteEffects.None);
+                        Image item = new(Globals.Content.Load<Texture2D>("cave_wall"), rect,SpriteEffects.None);
                         Backgrounds.Add(item);
                     }
                 }
@@ -876,6 +876,9 @@ namespace Platformer
                     , new Color(Color.White, 0.2f));
             if (DrawItem && UserInterface.MouseState == "ladder")
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("ladder"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
+                    , new Color(Color.White, 0.2f));
+            if (DrawItem && UserInterface.MouseState == "background")
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("cave_wall"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
                     , new Color(Color.White, 0.2f));
             foreach (var image in Trails)
             {
