@@ -28,10 +28,12 @@ namespace Platformer
             Image a = new(_textures[0][0], MaptoScreen(5, 4), SpriteEffects.None);
             Image d = new(_textures[0][3], MaptoScreen(6, 5), SpriteEffects.None);
 
-            Image space = new(Globals.Content.Load<Texture2D>("spacebar"), MaptoScreen(7, 11), SpriteEffects.None);
+            Image space = new(Globals.Content.Load<Texture2D>("spacebar"), new(MaptoScreen(7, 11).X, MaptoScreen(7, 11).Y, MaptoScreen(7, 11).Width*3, MaptoScreen(7, 11).Height), SpriteEffects.None);
             _images.Add(w);_images.Add(s);_images.Add(d);_images.Add(a);_images.Add(space);
             DamageText text1 = new("Use WASD to Move Around", MaptoVector(3, 6), Color.Black);
-            _texts.Add(text1);
+            DamageText text2 = new("SPACE to Attack and Open Chests", MaptoVector(7,10), Color.Black);
+            _texts.Add(text1);_texts.Add(text2);
+            
         }
         public void Update(Vector2 displacement)
         {
