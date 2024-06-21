@@ -36,7 +36,7 @@ namespace Platformer
                 {
                     int width = spritesheet.Width / w, height = spritesheet.Height / h;
                     Rectangle sourceRect = new Rectangle(i * width, j * height, width, height);
-                    Texture2D cropTexture = new Texture2D(Globals.Device, width, height);
+                    Texture2D cropTexture = new Texture2D(Device, width, height);
                     Color[] data = new Color[width * height];
                     spritesheet.GetData(0, sourceRect, data, 0, data.Length);
                     cropTexture.SetData(data);

@@ -615,11 +615,11 @@ namespace Platformer
                     {
                         _velocity.Y *= 0.4f;
                     }
-                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 20f)
+                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 30f)
                     {
                         _velocity.Y = -20;
 
-                        Stamina -= 20;
+                        Stamina -= 30;
                         if (!Casting)
                         {
                             States = CharacterStates.Jump;

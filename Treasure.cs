@@ -16,7 +16,7 @@
             Rectangle = Globals.Rectangle(60,45,position);
             _velocity = Vector2.Zero;
         }
-        public void Update(Vector2 displacement, Tile[,] tiles)
+        public void Update(Vector2 displacement, Tile[,] tiles,List<Platform> platforms)
         {
             if (Opened)
             {
@@ -41,6 +41,18 @@
                     else if (_velocity.Y < 0)
                     {
                         newPos.Y = collider.Rectangle.Bottom;
+                    }
+                }
+            }
+            foreach (var collider in platforms)
+            {
+                Rectangle = Globals.Rectangle(60, 45, new(Position.X, newPos.Y));
+                if (Rectangle.Intersects(collider.Rectangle))
+                {
+                    if (_velocity.Y >= 0)
+                    {
+                        newPos.Y = collider.Rectangle.Top - Rectangle.Height / 2;
+                        _velocity.Y = 0;
                     }
                 }
             }

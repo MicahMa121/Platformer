@@ -23,7 +23,14 @@ namespace Platformer
         }
         public void Update()
         {
+            
             Opacity -= 0.05f;
+        }
+        public void UpdatePosition(Vector2 displacement)
+        {
+            _position += displacement;
+            _rect.X = (int)_position.X;
+            _rect.Y = (int)_position.Y;
         }
         public void Draw()
         {

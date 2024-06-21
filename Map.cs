@@ -31,7 +31,7 @@ namespace Platformer
                         }
                         else
                         {
-                            writer.Write('0');
+                            writer.Write('1');
                         }
                     }
                     writer.WriteLine();
@@ -58,8 +58,8 @@ namespace Platformer
         }
         private Random _gen = new Random();
         public Tile[,] Tiles;
-        private Texture2D _soilTexture = Globals.Content.Load<Texture2D>("Soil");
-        private Texture2D _soil2Texture = Globals.Content.Load<Texture2D>("SoilClean");
+        private Texture2D _soilTexture = Globals.Content.Load<Texture2D>("grass_block (1)");
+        private Texture2D _soil2Texture = Globals.Content.Load<Texture2D>("dirt_block (1)");
         private int tileSize = Globals.TileSize;
         public List<Enemy> Enemies = new List<Enemy>();
         public List<Scorpion> Scorpions = new List<Scorpion>();
@@ -119,6 +119,7 @@ namespace Platformer
             Enemies.Clear();
             Platforms.Clear();
             Ladders.Clear();
+            Backgrounds.Clear();
 
             ShopBtn = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
@@ -168,6 +169,11 @@ namespace Platformer
                         Platform item = new(Globals.Content.Load<Texture2D>("ladder"), new((int)MaptoScreen(x, y).X, (int)MaptoScreen(x, y).Y, Globals.TileSize, Globals.TileSize));
                         Ladders.Add(item);
                     }
+                    if (map[x, y] == 8)
+                    {
+                        Image item = new(Globals.Content.Load<Texture2D>("cave_wall"), new((int)MaptoScreen(x, y).X, (int)MaptoScreen(x, y).Y, Globals.TileSize, Globals.TileSize), SpriteEffects.None);
+                        Backgrounds.Add(item);
+                    }
                 }
             }
         }
@@ -191,11 +197,16 @@ namespace Platformer
         public List<Image> Trails { get; set; } = new List<Image> ();
         public List<Platform> Platforms { get; set; } = new List<Platform> ();
         public List<Platform> Ladders { get; set; } = new List<Platform>();
+        public List<Image> Backgrounds { get; set; } = new List<Image>();
+
         public Button ShopBtn { get; set; } 
         public Button Restart { get; set; }
         public void Update(Vector2 displacement)
         {
-
+            foreach(var item in Backgrounds)
+            {
+                item.UpdatePosition(displacement);
+            }
             for (int i = 0; i < DamageTexts.Count; i++)
             {
                 DamageTexts[i].Update(displacement);
@@ -236,7 +247,7 @@ namespace Platformer
                         if (Restart.ButtonPressed())
                         {
                             NewGame();
-                            Revive();//
+                            Revive();
                             Restart = null;
                             return;
                         }
@@ -296,7 +307,7 @@ namespace Platformer
             }
             foreach (Treasure treasure in Treasures)
             {
-                treasure.Update(displacement, Tiles);
+                treasure.Update(displacement, Tiles,Platforms);
                 if (!treasure.Opened&&Player.Attacking && Player.AttackRange().Intersects(treasure.Rectangle))
                 {
                     treasure.Opened = true;
@@ -447,7 +458,7 @@ namespace Platformer
                             DamageTexts.Add(text);
                             Player.Dodge = false;
                         }
-                        else if (Player.Dashing)
+                        else if (Player.Dashing&& Player.Hitbox(Player.Position).Intersects(slash.Rectangle))
                         {
                             Player.Dodge = true;
                             Image image = new(Player.Texture, new Rectangle((int)Player.Position.X, (int)Player.Position.Y, Player.Rectangle.Width, Player.Rectangle.Height), Player.SpriteEffect);
@@ -791,12 +802,50 @@ namespace Platformer
                     DrawItem = false;
                 }
             }
+            if (UserInterface.MouseState == "background")
+            {
+                bool Add = true;
+                for (int i = 0; i < Backgrounds.Count; i++)
+                {
+                    if (Clickable() && Backgrounds[i].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                    {
+                        Backgrounds.RemoveAt(i);
+                        i--;
+                        Add = false;
+                    }
+                }
+                if (Clickable() && !IsTouchingSoil)
+                {
+                    DrawItem = true;
+                    if (InputManager.MouseClicked && Add)
+                    {
+                        Rectangle rect = new();
+                        foreach (Tile tile in Tiles)
+                        {
+                            if (tile.Rectangle.Contains(InputManager.MouseRectangle))
+                            {
+                                rect = tile.Rectangle; break;
+                            }
+                        }
+                        Image item = new(Globals.Content.Load<Texture2D>("dirtbackground"), rect,SpriteEffects.None);
+                        Backgrounds.Add(item);
+                    }
+                }
+                else
+                {
+                    DrawItem = false;
+                }
+            }
         }
         public List<DamageText> DamageTexts { get; set; } = new List<DamageText>();
         public List<Treasure> Treasures { get; set; } = new List<Treasure>();
         public bool DrawItem { get; set; } = false;
         public void Draw()
         {
+            foreach(var item in Backgrounds)
+            {
+                item.Draw();
+            }
             foreach (Tile tile in Tiles)
             {
                 if (tile == null) continue;

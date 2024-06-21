@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
+using System.Threading;
 
 namespace Platformer
 {
@@ -7,6 +8,7 @@ namespace Platformer
     {
         intro,
         load,
+        tutorial,
         game,
         exit
     }
@@ -17,12 +19,13 @@ namespace Platformer
 
         Character player;
         Screen screen;
+        Tutorial tutorial;
         List<Background> backgrounds = new List<Background> ();
 
         Map map;
-        string loadTxt = "Click to Start";
+        string loadTxt = "Start Game";
         Shop shop;
-        Button button;
+        Button button,tutoBtn;
         UserInterface userInterface;
         List<DamageText> damageTexts = new List<DamageText> ();
         public Game1()
@@ -45,7 +48,8 @@ namespace Platformer
             screen = Screen.intro;
 
             base.Initialize();
-            button = new(new(Globals.WindowSize.X/2, Globals.WindowSize.Y/2), loadTxt);
+            button = new(new(Globals.WindowSize.X/2, Globals.WindowSize.Y/2+40), loadTxt);
+            tutoBtn = new(new(Globals.WindowSize.X / 2, Globals.WindowSize.Y / 2), "Tutorials");
 
         }
 
@@ -70,14 +74,90 @@ namespace Platformer
          Globals.Content.Load<Texture2D>("maincharacter"),
          new(300,300));
             userInterface = new UserInterface();
-            this.Window.Title = "about to load file";
+            this.Window.Title = "Find The Hidden Treasure";
             map = new();
-            this.Window.Title = "file loaded";
             map.UserInterface = userInterface;
             map.Player = player;
-            screen = Screen.game;
+
             shop = new();
             map.shop = shop;
+        }
+        protected void GameUpdate()
+        {
+            player.Update(map);
+            userInterface.Update(map);
+            foreach (Background background in backgrounds)
+            {
+                background.Update(player.MapDisplacement.X);
+            }
+            for (int i = 0; i < damageTexts.Count; i++)
+            {
+                damageTexts[i].Update(player.MapDisplacement);
+                if (damageTexts[i].Opacity <= 0)
+                {
+                    damageTexts.RemoveAt(i);
+                    i--;
+                }
+            }
+            shop.Update(player.Atk, player.MaxHp, player.Health, player.MaxStamina, player.SkillZ, player.SkillX);
+            if (map.ShopBtn.ButtonPressed())
+            {
+                shop.OpenShop = !shop.OpenShop;
+            }
+            if (shop.OpenShop)
+            {
+                shop.ExitBtn.Update();
+                if (shop.ExitBtn.ButtonPressed())
+                {
+
+                    shop.OpenShop = false;
+                }
+                for (int i = 0; i < shop.ShopItems.Count; i++)
+                {
+                    if (shop.ShopItems[i].IsBought)
+                    {
+                        if (map.Money >= shop.ShopItems[i]._cost)
+                        {
+                            shop.ShopItems[i].Sold = true;
+                            shop.ShopItems[i].IsBought = false;
+                            player.Atk += shop.ShopItems[i]._atk;
+                            player.MaxHp += shop.ShopItems[i]._maxHp;
+                            player.Health += shop.ShopItems[i]._hp;
+                            player.MaxStamina += shop.ShopItems[i]._sta;
+                            if (shop.ShopItems[i]._skillz != null)
+                            {
+                                player.SkillZ = shop.ShopItems[i]._skillz;
+                            }
+                            if (shop.ShopItems[i]._skillx != null)
+                            {
+                                player.SkillX = shop.ShopItems[i]._skillx;
+                            }
+                            map.Money -= (int)shop.ShopItems[i]._cost;
+                            map.ShopBtn.Text = "$ " + map.Money;
+                        }
+                        else
+                        {
+                            shop.ShopItems[i].IsBought = false;
+                            DamageText pop = new("Not Enough Money!", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Not Enough Money!").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Not Enough Money!").Y), Color.Red);
+                            damageTexts.Add(pop);
+                        }
+                    }
+                }
+                if (shop.refreshBtn.ButtonPressed())
+                {
+                    if (map.Money >= 50)
+                    {
+                        shop.RefreshShop();
+                        map.Money -= 50;
+                        map.ShopBtn.Text = "$ " + map.Money;
+                    }
+                    else
+                    {
+                        DamageText pop = new("Not Enough Money!", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Not Enough Money!").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Not Enough Money!").Y), Color.Red);
+                        damageTexts.Add(pop);
+                    }
+                }
+            }
         }
         protected override void Update(GameTime gameTime)
         {
@@ -96,6 +176,14 @@ namespace Platformer
                     button.Text = "Loading...";
                     screen = Screen.load;
                 }
+                tutoBtn.Update();
+                if (tutoBtn.ButtonPressed())
+                {
+                    screen = Screen.tutorial;
+                    tutorial = new();
+                    GameRun();
+                    userInterface.tuto = tutorial;
+                }
                 foreach (Background background in backgrounds)
                 {
                     background.Update(0f);
@@ -104,85 +192,30 @@ namespace Platformer
             else if (screen == Screen.load)
             {
                 GameRun();
+                Globals.Level = 2;
+
+                screen = Screen.game;
+            }
+            else if (screen == Screen.tutorial)
+            {
+                GameUpdate();
+                Globals.Level = 1;
+                tutorial.Update(player.MapDisplacement);
+                if (Globals.Level != 1)
+                {
+                    screen = Screen.game;
+                }
+                if (map.ShopBtn.ButtonPressed())
+                {
+                    tutorial.done = true;
+                }
             }
             else if (screen == Screen.game)
             {
-                player.Update(map);
-                userInterface.Update(map);
-                foreach (Background background in backgrounds)
-                {
-                    background.Update(player.MapDisplacement.X);
-                }
-                for (int i = 0; i < damageTexts.Count; i++)
-                {
-                    damageTexts[i].Update(player.MapDisplacement);
-                    if (damageTexts[i].Opacity<= 0)
-                    {
-                        damageTexts.RemoveAt(i);
-                        i--;
-                    }
-                }
-                shop.Update(player.Atk,player.MaxHp,player.Health,player.MaxStamina,player.SkillZ,player.SkillX);
-                if (map.ShopBtn.ButtonPressed())
-                {
-                    shop.OpenShop = !shop.OpenShop;
-                }
-                if (shop.OpenShop)
-                {
-                    shop.ExitBtn.Update();
-                    if (shop.ExitBtn.ButtonPressed())
-                    {
-                        
-                        shop.OpenShop = false;
-                    }
-                    for (int i = 0; i < shop.ShopItems.Count; i++)
-                    {
-                        if (shop.ShopItems[i].IsBought)
-                        {
-                            if (map.Money >= shop.ShopItems[i]._cost)
-                            {
-                                shop.ShopItems[i].Sold = true;
-                                shop.ShopItems[i].IsBought = false;
-                                player.Atk += shop.ShopItems[i]._atk;
-                                player.MaxHp += shop.ShopItems[i]._maxHp;
-                                player.Health += shop.ShopItems[i]._hp;
-                                player.MaxStamina += shop.ShopItems[i]._sta;
-                                if (shop.ShopItems[i]._skillz != null)
-                                {
-                                    player.SkillZ = shop.ShopItems[i]._skillz;
-                                }
-                                if (shop.ShopItems[i]._skillx != null)
-                                {
-                                    player.SkillX = shop.ShopItems[i]._skillx;
-                                }
-                                map.Money -= (int)shop.ShopItems[i]._cost;
-                                map.ShopBtn.Text = "$ " + map.Money;
-                            }
-                            else
-                            {
-                                shop.ShopItems[i].IsBought = false;
-                                DamageText pop = new("Not Enough Money!", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Not Enough Money!").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Not Enough Money!").Y), Color.Red);
-                                damageTexts.Add(pop);
-                            }
-                        }
-                    }
-                    if (shop.refreshBtn.ButtonPressed())
-                    {
-                        if (map.Money >= 50)
-                        {
-                            shop.RefreshShop();
-                            map.Money -= 50;
-                            map.ShopBtn.Text = "$ " + map.Money;
-                        }
-                        else
-                        {
-                            DamageText pop = new("Not Enough Money!", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Not Enough Money!").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Not Enough Money!").Y), Color.Red);
-                            damageTexts.Add(pop);
-                        }
-                    }
-                }
+                GameUpdate();
+                
             }
-            this.Window.Title = _graphics.PreferredBackBufferWidth.ToString() +" "+ Globals.WindowSize.X;
+            
             base.Update(gameTime);
         }
 
@@ -201,10 +234,28 @@ namespace Platformer
             if (screen == Screen.intro)
             {
                 button.Draw();
+                tutoBtn.Draw();
             }
             else if (screen == Screen.load)
             {
                 button.Draw();
+            }
+            else if (screen == Screen.tutorial)
+            {
+                tutorial.Draw();
+                map.Draw();
+                player.Draw();
+                userInterface.Draw();
+                shop.Draw();
+                foreach (var item in damageTexts)
+                {
+                    item.Draw();
+                }
+                if (!tutorial.done && map.Money >= 100)
+                {
+                    tutorial._image.Draw();
+                }
+
             }
             else if (screen == Screen.game)
             {

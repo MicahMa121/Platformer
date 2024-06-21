@@ -21,6 +21,10 @@ namespace Platformer
             _position += displacement;
             _position.Y -= 0.5f;
         }
+        public void UpdatePosition(Vector2 displacement)
+        {
+            _position += displacement;
+        }
         public void Draw()
         {
             Globals.SpriteBatch.DrawString(_font, _text, _position, new Color(_color,Opacity));

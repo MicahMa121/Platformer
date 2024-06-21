@@ -26,10 +26,11 @@ namespace Platformer
         public bool EditOpen = false;
         private Button _left;
         private Button _right;
-        public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder;
+        public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder,Background;
         public List<Image> Images = new List<Image>();
         public float atk = 5, hp = 100, maxhp = 100, stamina = 100,money = 0;
         public string skillz = "Locked", skillx = "Locked";
+        public Tutorial tuto { get; set; }  
         public UserInterface()
         {
             MouseState = null;
@@ -63,7 +64,8 @@ namespace Platformer
             Scorpion = new(Globals.Content.Load<Texture2D>("scorpion"), Rectangle(side, side, new Vector2(Origin.X + 250, 570)), SpriteEffects.None);
             Platform = new(Globals.Content.Load<Texture2D>("platform"), Rectangle(side, side, new Vector2(Origin.X + 350, 570)), SpriteEffects.None);
             Ladder = new(Globals.Content.Load<Texture2D>("ladder"), Rectangle(side, side, new Vector2(Origin.X + 450, 570)), SpriteEffects.None);
-            Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);Images.Add(Platform);Images.Add(Ladder);
+            Background = new(Globals.Content.Load<Texture2D>("dirtbackground"), Rectangle(side, side, new Vector2(Origin.X + 550, 570)), SpriteEffects.None);
+            Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);Images.Add(Platform);Images.Add(Ladder);Images.Add(Background);
         }
         public int PreviousLevel { get; set; }
         public void Update(Map map)
@@ -79,11 +81,11 @@ namespace Platformer
                     if (map.Player.Hitbox(map.Player.Position).Intersects(portal.Rectangle))
                     {
                         Globals.Level++;
-                        if (Globals.Level >= 5)
+                        if (Globals.Level > 6)
                         {
-                            Globals.Level = 1;
+                            Globals.Level = 2;
                         }
-                        LevelBtn.Text = "level " + Globals.Level;
+                        LevelBtn.Text = "level " + (Globals.Level - 1);
                         map.NewGame();
                         atk = map.Player.Atk;
                         hp = map.Player.Health;
@@ -112,11 +114,11 @@ GravityBtn.Rectangle(GravityBtn.Width, GravityBtn.Height).Contains(InputManager.
 LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseRectangle))
                 {
                     Globals.Level++;
-                    if (Globals.Level >= 5)
+                    if (Globals.Level > 6)
                     {
-                        Globals.Level = 1;
+                        Globals.Level = 2;
                     }
-                    LevelBtn.Text = "level " + Globals.Level;
+                    LevelBtn.Text = "level " + (Globals.Level-1);
                 }
                 if (InputManager.MouseClicked &&
     EditLevelBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
@@ -136,6 +138,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                     UIrect = Rectangle(0, 0, Origin);
                     map.NewGame();
                     map.Revive();
+                    tuto.Refresh();
                     PreviousLevel = Globals.Level;
                 }
                 if (InputManager.MouseClicked &&
@@ -218,6 +221,16 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                         continue;
                                     }
                                 }
+                                foreach (var item in map.Backgrounds)
+                                {
+                                    if (empty &&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X, (int)item.Position.Y, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('8');
+                                        continue;
+                                    }
+                                }
                             }
                             if (empty)
                                 writer.Write('0');
@@ -292,6 +305,10 @@ _right.Rectangle(_left.Width, _left.Height).Contains(InputManager.MouseRectangle
                 else if (Ladder.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Ladder))
                 {
                     MouseState = "ladder";
+                }
+                else if (Background.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Background))
+                {
+                    MouseState = "background";
                 }
             }
         }
