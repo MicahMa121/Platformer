@@ -54,6 +54,7 @@ namespace Platformer
                 }
                 reader.ReadLine();
             }
+            reader.Close();
             return level;
         }
         private Random _gen = new Random();
@@ -84,7 +85,7 @@ namespace Platformer
         {
             if (Player != null)
             {
-
+                Player.Position = new Vector2(Globals.WindowSize.X/2, Globals.WindowSize.Y/2);
                 Player.Atk = UserInterface.atk;
                 Player.Health = UserInterface.hp;
                 Player.MaxHp = UserInterface.maxhp;
@@ -120,6 +121,7 @@ namespace Platformer
             Platforms.Clear();
             Ladders.Clear();
             Backgrounds.Clear();
+            Spikes.Clear();
 
             ShopBtn = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
@@ -174,6 +176,11 @@ namespace Platformer
                         Image item = new(Globals.Content.Load<Texture2D>("cave_wall"), new((int)MaptoScreen(x, y).X, (int)MaptoScreen(x, y).Y, Globals.TileSize, Globals.TileSize), SpriteEffects.None);
                         Backgrounds.Add(item);
                     }
+                    if (map[x, y] == 9)
+                    {
+                        Image item = new(Globals.Content.Load<Texture2D>("spikes"), new((int)MaptoScreen(x, y).X, (int)MaptoScreen(x, y).Y, Globals.TileSize, Globals.TileSize), SpriteEffects.None);
+                        Spikes.Add(item);
+                    }
                 }
             }
         }
@@ -198,9 +205,10 @@ namespace Platformer
         public List<Platform> Platforms { get; set; } = new List<Platform> ();
         public List<Platform> Ladders { get; set; } = new List<Platform>();
         public List<Image> Backgrounds { get; set; } = new List<Image>();
-
+        public List<Image> Spikes { get; set; } = new List<Image>();
         public Button ShopBtn { get; set; } 
         public Button Restart { get; set; }
+        public Tutorial tuto { get; set; }
         public void Update(Vector2 displacement)
         {
             foreach(var item in Backgrounds)
@@ -248,6 +256,10 @@ namespace Platformer
                         {
                             NewGame();
                             Revive();
+                            if (tuto != null)
+                            {
+                                tuto.Refresh();
+                            }
                             Restart = null;
                             return;
                         }
@@ -318,7 +330,7 @@ namespace Platformer
                     if (treasure.Time >= 0.05f)
                     {
                         treasure.Time = 0;
-                        treasure.Opacity -= 0.1f;
+                        treasure.Opacity -= 0.2f;
                         Coin coin = new Coin(Globals.Content.Load<Texture2D>("coin"), treasure.Position, 5*_gen.Next(1,3));
                         Coins.Add(coin);
                     }
@@ -340,6 +352,48 @@ namespace Platformer
                     Coins.Add(coin);
                     Enemies.RemoveAt(i);
                     i--;
+                }
+            }
+            foreach( var item in Spikes)
+            {
+                item.UpdatePosition(displacement);
+                if (item.Rectangle.Intersects(Player.Hitbox(Player.Position))&&!Player.Hurt)
+                {
+                    Player.Health -= (int)(Player.MaxHp / 4);
+                    DamageText text = new(Convert.ToString((int)(Player.MaxHp / 4)), new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
+                    DamageTexts.Add(text);
+                    Player.States = Character.CharacterStates.Hurt;
+                    Player.Hurt = true;
+                    Player.Idle = false;
+                    Player.Attacking = false;
+                    Player.Jumped = false;
+                    Player.Casting = false;
+                }
+                foreach(var enemy in Enemies)
+                {
+                    if (item.Rectangle.Intersects(enemy.Hitbox) && !enemy.Hurt)
+                    {
+                        enemy.Health -= (int)(enemy.MaxHp / 4);
+                        DamageText text = new(Convert.ToString((int)(enemy.MaxHp / 4)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Red);
+                        DamageTexts.Add(text);
+
+                        enemy.Hurt = true;
+                        enemy.States = EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+                foreach (var enemy in Scorpions)
+                {
+                    if (item.Rectangle.Intersects(enemy.Hitbox(enemy.Position)) && !enemy.Hurt)
+                    {
+                        enemy.Health -= (int)(enemy.MaxHp / 4);
+                        DamageText text = new(Convert.ToString((int)(enemy.MaxHp / 4)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Red);
+                        DamageTexts.Add(text);
+
+                        enemy.Hurt = true;
+                        enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
                 }
             }
             foreach (Enemy enemy in Enemies)
@@ -836,6 +890,40 @@ namespace Platformer
                     DrawItem = false;
                 }
             }
+            if (UserInterface.MouseState == "spike")
+            {
+                bool Add = true;
+                for (int i = 0; i < Spikes.Count; i++)
+                {
+                    if (Clickable() && Spikes[i].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                    {
+                        Spikes.RemoveAt(i);
+                        i--;
+                        Add = false;
+                    }
+                }
+                if (Clickable() && !IsTouchingSoil)
+                {
+                    DrawItem = true;
+                    if (InputManager.MouseClicked && Add)
+                    {
+                        Rectangle rect = new();
+                        foreach (Tile tile in Tiles)
+                        {
+                            if (tile.Rectangle.Contains(InputManager.MouseRectangle))
+                            {
+                                rect = tile.Rectangle; break;
+                            }
+                        }
+                        Image item = new(Globals.Content.Load<Texture2D>("spikes"), rect, SpriteEffects.None);
+                        Spikes.Add(item);
+                    }
+                }
+                else
+                {
+                    DrawItem = false;
+                }
+            }
         }
         public List<DamageText> DamageTexts { get; set; } = new List<DamageText>();
         public List<Treasure> Treasures { get; set; } = new List<Treasure>();
@@ -880,6 +968,13 @@ namespace Platformer
             if (DrawItem && UserInterface.MouseState == "background")
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("cave_wall"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
                     , new Color(Color.White, 0.2f));
+            if (DrawItem && UserInterface.MouseState == "spike")
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("spikes"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
+                    , new Color(Color.White, 0.2f));
+            foreach(var item in Spikes)
+            {
+                item.Draw();
+            }
             foreach (var image in Trails)
             {
                 image.Draw();

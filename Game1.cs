@@ -174,16 +174,19 @@ namespace Platformer
                 button.Update();
                 if (button.State == Button.ButtonStates.Pressed)
                 {
+                    Globals.Level = 2;
                     button.Text = "Loading...";
                     screen = Screen.load;
                 }
                 tutoBtn.Update();
                 if (tutoBtn.ButtonPressed())
                 {
+                    Globals.Level = 1;
                     screen = Screen.tutorial;
                     tutorial = new();
                     GameRun();
                     userInterface.tuto = tutorial;
+                    map.tuto = tutorial;
                 }
                 foreach (Background background in backgrounds)
                 {
@@ -192,7 +195,7 @@ namespace Platformer
             }
             else if (screen == Screen.load)
             {
-                Globals.Level = 2;
+                
                 GameRun();
 
 

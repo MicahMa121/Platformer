@@ -27,7 +27,7 @@ namespace Platformer
         public bool EditOpen = false;
         private Button _left;
         private Button _right;
-        public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder,Background;
+        public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder,Background,Spike;
         public List<Image> Images = new List<Image>();
         public float atk = 5, hp = 100, maxhp = 100, stamina = 100,money = 0;
         public string skillz = "Locked", skillx = "Locked";
@@ -52,7 +52,7 @@ namespace Platformer
             SetImages();
             _left = new Button(new(Origin.X - 250, 570), "<<<<<");
             _right = new Button(new(Origin.X + 250, 570), ">>>>>");
-            PreviousLevel = 1;
+            PreviousLevel = Globals.Level;
         }
         private void SetImages()
         {
@@ -66,7 +66,9 @@ namespace Platformer
             Platform = new(Globals.Content.Load<Texture2D>("platform"), Rectangle(side, side, new Vector2(Origin.X + 350, 570)), SpriteEffects.None);
             Ladder = new(Globals.Content.Load<Texture2D>("ladder"), Rectangle(side, side, new Vector2(Origin.X + 450, 570)), SpriteEffects.None);
             Background = new(Globals.Content.Load<Texture2D>("cave_wall"), Rectangle(side, side, new Vector2(Origin.X + 550, 570)), SpriteEffects.None);
+            Spike = new(Globals.Content.Load<Texture2D>("spikes"), Rectangle(side, side, new Vector2(Origin.X + 650, 570)), SpriteEffects.None);
             Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);Images.Add(Platform);Images.Add(Ladder);Images.Add(Background);
+            Images.Add(Spike);
         }
         public int PreviousLevel { get; set; }
         public void Update(Map map)
@@ -87,7 +89,7 @@ namespace Platformer
                         {
                             Globals.Level = 1;
                         }
-                        LevelBtn.Text = "level " + (Globals.Level );
+                        LevelBtn.Text = "level  " + (Globals.Level-1 );
                         map.NewGame();
                         atk = map.Player.Atk;
                         hp = map.Player.Health;
@@ -121,7 +123,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                     {
                         Globals.Level = 1;
                     }
-                    LevelBtn.Text = "level " + (Globals.Level);
+                    LevelBtn.Text = "level  " + (Globals.Level-1);
                 }
                 if (InputManager.MouseClicked &&
     EditLevelBtn.Rectangle(EditLevelBtn.Width, EditLevelBtn.Height).Contains(InputManager.MouseRectangle))
@@ -141,6 +143,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                     UIrect = Rectangle(0, 0, Origin);
                     map.NewGame();
                     map.Revive();
+                    map.Restart = null;
                     if (tuto != null)
                     {
                         tuto.Refresh();
@@ -200,7 +203,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                 foreach (var scorpion in map.Scorpions)
                                 {
                                     if (empty &&
-                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)scorpion.Position.X, (int)scorpion.Position.Y, 1, 1)))
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)scorpion.Position.X + Globals.TileSize / 2, (int)scorpion.Position.Y + Globals.TileSize / 2, 1, 1)))
                                     {
                                         empty = false;
                                         writer.Write('5');
@@ -210,7 +213,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                 foreach (var item in map.Platforms)
                                 {
                                     if (empty &&
-                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X, (int)item.Position.Y, 1, 1)))
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X + Globals.TileSize / 2, (int)item.Position.Y + Globals.TileSize / 2, 1, 1)))
                                     {
                                         empty = false;
                                         writer.Write('6');
@@ -220,7 +223,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                 foreach (var item in map.Ladders)
                                 {
                                     if (empty &&
-                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X, (int)item.Position.Y, 1, 1)))
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X + Globals.TileSize / 2, (int)item.Position.Y + Globals.TileSize / 2, 1, 1)))
                                     {
                                         empty = false;
                                         writer.Write('7');
@@ -230,10 +233,20 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                 foreach (var item in map.Backgrounds)
                                 {
                                     if (empty &&
-                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X, (int)item.Position.Y, 1, 1)))
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X + Globals.TileSize / 2, (int)item.Position.Y + Globals.TileSize / 2, 1, 1)))
                                     {
                                         empty = false;
                                         writer.Write('8');
+                                        continue;
+                                    }
+                                }
+                                foreach (var item in map.Spikes)
+                                {
+                                    if (empty &&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X+Globals.TileSize/2, (int)item.Position.Y + Globals.TileSize / 2, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('9');
                                         continue;
                                     }
                                 }
@@ -262,7 +275,7 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                     open = true;
                     SaveEditBtn.Text = "Save Edit";
                     Globals.Level = PreviousLevel;
-                    LevelBtn.Text = "level" + Globals.Level;
+                    LevelBtn.Text = "level  " + (Globals.Level-1);
                     UIrect = Rectangle(320, 480, Origin);
                 }
             }
@@ -315,6 +328,10 @@ _right.Rectangle(_left.Width, _left.Height).Contains(InputManager.MouseRectangle
                 else if (Background.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Background))
                 {
                     MouseState = "background";
+                }
+                else if (Spike.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Spike))
+                {
+                    MouseState = "spike";
                 }
             }
         }
