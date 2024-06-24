@@ -132,7 +132,7 @@ namespace Platformer
                 {
                     if (item.DescriptionOpen)
                     {
-                        item.DrawDescription();
+                        description = item;
                     }
                 }
                 ExitBtn.Draw();
