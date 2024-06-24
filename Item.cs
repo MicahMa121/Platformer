@@ -60,10 +60,6 @@ namespace Platformer
                 }
 
             }
-            else if (InputManager.MouseDown&&_itemRect.Contains(InputManager.MouseRectangle))
-            {
-                DescriptionOpen = true;
-            }
         }
         public void Draw()
         {

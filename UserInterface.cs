@@ -1,8 +1,5 @@
 ﻿
 
-using System.Diagnostics;
-using System.IO;
-
 namespace Platformer
 {
     public class UserInterface
@@ -67,13 +64,15 @@ namespace Platformer
             Ladder = new(Globals.Content.Load<Texture2D>("ladder"), Rectangle(side, side, new Vector2(Origin.X + 450, 570)), SpriteEffects.None);
             Background = new(Globals.Content.Load<Texture2D>("cave_wall"), Rectangle(side, side, new Vector2(Origin.X + 550, 570)), SpriteEffects.None);
             Spike = new(Globals.Content.Load<Texture2D>("spikes"), Rectangle(side, side, new Vector2(Origin.X + 650, 570)), SpriteEffects.None);
+            Kitsune = new(Globals.Content.Load<Texture2D>("Kitsune"), Rectangle(side, side, new Vector2(Origin.X -250, 570)), SpriteEffects.None);
+
+
             Images.Add(Enemy); Images.Add(Treasure); Images.Add(Portal); Images.Add(Soil); Images.Add(Scorpion);Images.Add(Platform);Images.Add(Ladder);Images.Add(Background);
-            Images.Add(Spike);
+            Images.Add(Spike);Images.Add(Kitsune);
         }
         public int PreviousLevel { get; set; }
         public void Update(Map map)
         {
-            Debug.WriteLine(money);
             foreach (Button button in Buttons)
                 button.Update();
             _left.Update();
@@ -250,6 +249,16 @@ LevelBtn.Rectangle(LevelBtn.Width, LevelBtn.Height).Contains(InputManager.MouseR
                                         continue;
                                     }
                                 }
+                                foreach (var item in map.Kitsunes)
+                                {
+                                    if (empty &&
+                                        map.Tiles[y, x].Rectangle.Contains(new Rectangle((int)item.Position.X + Globals.TileSize / 2, (int)item.Position.Y + Globals.TileSize / 2, 1, 1)))
+                                    {
+                                        empty = false;
+                                        writer.Write('a');
+                                        continue;
+                                    }
+                                }
                             }
                             if (empty)
                                 writer.Write('0');
@@ -332,6 +341,10 @@ _right.Rectangle(_left.Width, _left.Height).Contains(InputManager.MouseRectangle
                 else if (Spike.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Spike))
                 {
                     MouseState = "spike";
+                }
+                else if (Kitsune.Rectangle.Contains(InputManager.MouseRectangle) && Editable(Kitsune))
+                {
+                    MouseState = "kitsune";
                 }
             }
         }

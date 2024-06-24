@@ -1,7 +1,4 @@
-﻿
-using static System.Net.Mime.MediaTypeNames;
-
-namespace Platformer
+﻿namespace Platformer
 {
     public class Button
     {

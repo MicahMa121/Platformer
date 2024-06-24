@@ -1,8 +1,6 @@
-﻿using System;
-using System.Diagnostics;
+﻿
+using System;
 using System.IO;
-using System.Security;
-using System.Text;
 using static Platformer.Enemy;
 
 namespace Platformer
@@ -218,10 +216,6 @@ namespace Platformer
         public Tutorial tuto { get; set; }
         public void Update(Vector2 displacement)
         {
-            foreach (var item in Kitsunes)
-            {
-                item.Update(displacement,Tiles,Platforms,Player);
-            }
             if (InputManager.IsKeyClicked(Keys.C))
             {
                 Kitsune kitsune = new(new(320, 320));
@@ -370,7 +364,17 @@ namespace Platformer
                     i--;
                 }
             }
-            foreach( var item in Spikes)
+            for (int i = 0; i < Kitsunes.Count; i++)
+            {
+                if (Kitsunes[i].Died)
+                {
+                    Treasure treasure = new(Globals.Content.Load<Texture2D>("treasure"), new(Kitsunes[i].Hitbox.Center.X, Kitsunes[i].Hitbox.Center.Y));
+                    Treasures.Add(treasure);
+                    Kitsunes.RemoveAt(i);
+                    i--;
+                }
+            }
+            foreach ( var item in Spikes)
             {
                 item.UpdatePosition(displacement);
                 if (item.Rectangle.Intersects(Player.Hitbox(Player.Position))&&!Player.Hurt)
@@ -380,6 +384,7 @@ namespace Platformer
                     DamageTexts.Add(text);
                     Player.States = Character.CharacterStates.Hurt;
                     Player.Hurt = true;
+                    
                     Player.Idle = false;
                     Player.Attacking = false;
                     Player.Jumped = false;
@@ -394,7 +399,22 @@ namespace Platformer
                         DamageTexts.Add(text);
 
                         enemy.Hurt = true;
+                        enemy._count = 0;
                         enemy.States = EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+                foreach (var enemy in Kitsunes)
+                {
+                    if (item.Rectangle.Intersects(enemy.Hitbox) && !enemy.Hurt)
+                    {
+                        enemy.Health -= (int)(enemy.MaxHp / 4);
+                        DamageText text = new(Convert.ToString((int)(enemy.MaxHp / 4)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Red);
+                        DamageTexts.Add(text);
+
+                        enemy.Hurt = true;
+                        enemy._count = 0;
+                        enemy.States = (Kitsune.EnemyStates)EnemyStates.Hurt;
                         enemy.Speed = 0;
                     }
                 }
@@ -407,6 +427,7 @@ namespace Platformer
                         DamageTexts.Add(text);
 
                         enemy.Hurt = true;
+                        enemy._count = 0;
                         enemy.States = (Scorpion.EnemyStates)EnemyStates.Hurt;
                         enemy.Speed = 0;
                     }
@@ -438,6 +459,7 @@ namespace Platformer
                             }
 
                             enemy.Hurt = true;
+                            enemy._count = 0;
                             enemy.States = EnemyStates.Hurt;
                             enemy.Speed = 0;
 
@@ -484,6 +506,59 @@ namespace Platformer
                         enemy.Poisoned += -1;
                         enemy.Health += -(int)(0.1f * Player.Atk);
                         DamageText text = new(Convert.ToString((int)(0.1f * Player.Atk)), new(enemy.Rectangle.Center.X, enemy.Position.Y), Color.Turquoise);
+                        DamageTexts.Add(text);
+                        if (enemy.Poisoned == 0)
+                        {
+                            enemy.Color = Color.White;
+                        }
+                        enemy.PoisonedSpeed = 0;
+                    }
+
+                }
+            }
+            foreach (var enemy in Kitsunes)
+            {
+                if (UserInterface.open || UserInterface.EditOpen || Player.Reviving)
+                {
+                    enemy.Speed = 0;
+                }
+                else
+                {
+                    if (Player.Attacking && enemy.Hitbox.Intersects(Player.AttackRange()))
+                    {
+                        if (!enemy.Hurt)
+                        {
+                            if (enemy._spriteEffect != Player.SpriteEffect)
+                            {
+                                enemy.Health -= Player.Atk * 2;
+                                DamageText text = new(Convert.ToString(Player.Atk * 2), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Yellow);
+                                DamageTexts.Add(text);
+                            }
+                            else
+                            {
+                                enemy.Health -= Player.Atk;
+                                DamageText text = new(Convert.ToString(Player.Atk), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Yellow);
+                                DamageTexts.Add(text);
+                            }
+
+                            enemy.Hurt = true;
+                            enemy._count = 0;
+                            enemy.States = (Kitsune.EnemyStates)EnemyStates.Hurt;
+                            enemy.Speed = 0;
+
+                        }
+
+                    }
+                }
+                enemy.Update(displacement, Tiles, Platforms);
+                if (enemy.Poisoned > 0)
+                {
+                    enemy.PoisonedSpeed += Globals.Time;
+                    if (enemy.PoisonedSpeed > 1)
+                    {
+                        enemy.Poisoned += -1;
+                        enemy.Health += -(int)(0.1f * Player.Atk);
+                        DamageText text = new(Convert.ToString((int)(0.1f * Player.Atk)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Turquoise);
                         DamageTexts.Add(text);
                         if (enemy.Poisoned == 0)
                         {
@@ -553,6 +628,7 @@ namespace Platformer
                             }
 
                             scorpion.Hurt = true;
+                            scorpion._count = 0;
                             scorpion.States = Scorpion.EnemyStates.Hurt;
                             scorpion.Speed = 0;
 
@@ -654,6 +730,48 @@ namespace Platformer
                             foreach (Treasure treasure in Treasures)
                             {
                                 if (Tiles[i, j].Rectangle.Intersects(treasure.Rectangle))
+                                {
+                                    add = false; break;
+                                }
+                            }
+                            foreach (var item in Kitsunes)
+                            {
+                                if (Tiles[i, j].Rectangle.Intersects(item.Hitbox))
+                                {
+                                    add = false; break;
+                                }
+                            }
+                            foreach (var item in Portals)
+                            {
+                                if (Tiles[i, j].Rectangle.Intersects(item.Rectangle))
+                                {
+                                    add = false; break;
+                                }
+                            }
+                            foreach (var item in Platforms)
+                            {
+                                if (Tiles[i, j].Rectangle.Intersects(item.Rectangle))
+                                {
+                                    add = false; break;
+                                }
+                            }
+                            foreach (var item in Ladders)
+                            {
+                                if (Tiles[i, j].Rectangle.Intersects(item.Rectangle))
+                                {
+                                    add = false; break;
+                                }
+                            }
+                            foreach (var item in Scorpions)
+                            {
+                                if (Tiles[i, j].Rectangle.Intersects(item.Rectangle))
+                                {
+                                    add = false; break;
+                                }
+                            }
+                            foreach (var item in Spikes)
+                            {
+                                if (Tiles[i, j].Rectangle.Intersects(item.Rectangle))
                                 {
                                     add = false; break;
                                 }
@@ -940,6 +1058,32 @@ namespace Platformer
                     DrawItem = false;
                 }
             }
+            if (UserInterface.MouseState == "kitsune")
+            {
+                bool Add = true;
+                for (int i = 0; i < Spikes.Count; i++)
+                {
+                    if (Clickable() && Spikes[i].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                    {
+                        Spikes.RemoveAt(i);
+                        i--;
+                        Add = false;
+                    }
+                }
+                if (Clickable() && !IsTouchingSoil)
+                {
+                    DrawItem = true;
+                    if (InputManager.MouseClicked && Add)
+                    {
+                        Kitsune item = new(new(InputManager.MouseRectangle.X - 32, InputManager.MouseRectangle.Y - 32));
+                        Kitsunes.Add(item);
+                    }
+                }
+                else
+                {
+                    DrawItem = false;
+                }
+            }
         }
         public List<DamageText> DamageTexts { get; set; } = new List<DamageText>();
         public List<Treasure> Treasures { get; set; } = new List<Treasure>();
@@ -987,7 +1131,10 @@ namespace Platformer
             if (DrawItem && UserInterface.MouseState == "spike")
                 Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("spikes"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
                     , new Color(Color.White, 0.2f));
-            foreach(var item in Spikes)
+            if (DrawItem && UserInterface.MouseState == "kitsune")
+                Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("Kitsune"), Globals.Rectangle(tileSize, tileSize, new(InputManager.MouseRectangle.X, InputManager.MouseRectangle.Y))
+                    , new Color(Color.White, 0.2f));
+            foreach (var item in Spikes)
             {
                 item.Draw();
             }

@@ -1,4 +1,6 @@
-﻿namespace Platformer
+﻿using System.Xml.Schema;
+
+namespace Platformer
 {
     public class Kitsune
     {
@@ -10,7 +12,6 @@
         public Color Color { get; set; } = Color.White;
         public int Poisoned { get; set; } = 0;
         public float PoisonedSpeed { get; set; } = 0;
-        public Rectangle Rectangle { get; set; }
         public float Atk { get; set; } = 5f * Globals.Level;
 
         public float Def { get; set; }
@@ -21,12 +22,11 @@
         public SpriteEffects _spriteEffect;
         public enum EnemyStates
         {
-            Summon,
+            Summon, 
             Death,
             Hurt,
-            Idle,
-            Walk,
             Heal,
+            Walk,
         }
         public EnemyStates States { get; set; }
         public bool RightDirection { get; set; } = true;
@@ -41,6 +41,8 @@
         private Vector2 _velocity;
         public bool Hurt { get; set; }
         public Rectangle Hitbox { get; set; }
+        public float SummonCD = 0;
+        public float HealCD = 0;
         public Rectangle ToHitbox(Vector2 pos)
         {
             int x = width / 4;
@@ -48,7 +50,7 @@
         }
         public Kitsune(Vector2 position)
         {
-            Textures = SpriteSheet(Globals.Content.Load<Texture2D>("kitsune_spritesheet"),4,5);
+            Textures = SpriteSheet(Globals.Content.Load<Texture2D>("kitsune-v2-sprite-sheet"),4,5);
             _spriteEffect = SpriteEffects.None;
             Position = position;
             States = EnemyStates.Walk;
@@ -67,6 +69,10 @@
             {
                 List<Texture2D> List = new List<Texture2D>();
                 int blanks = 0;
+                if (j == 2)
+                {
+                    blanks = 2;
+                }
                 for (int i = 0; i < w - blanks; i++)
                 {
                     int width = spritesheet.Width / w, height = spritesheet.Height / h;
@@ -85,12 +91,13 @@
             }
             return textures;
         }
-        public void Update(Vector2 displacement, Tile[,] tiles, List<Platform> Platforms, Character player)
+        public void Update(Vector2 displacement, Tile[,] tiles, List<Platform> Platforms)
         {
             //displacement
             Position += displacement;
             Hitbox = ToHitbox(Position);
-            Rectangle = new((int)Position.X, (int)Position.Y, Rectangle.Width, Rectangle.Height);
+            SummonCD += Globals.Time;
+            //HealCD += Globals.Time;
             if (Health <= 0 && !Dying)
             {
                 Dying = true;
@@ -147,6 +154,11 @@
                         IsAttacking = false;
                         Hurt = false;
                     }
+                    if (States == EnemyStates.Heal)
+                    {
+                        IsAttacking = false;
+                        Hurt = false;
+                    }
                     if (States == EnemyStates.Hurt)
                     {
                         Hurt = false;
@@ -158,7 +170,22 @@
                 _time = 0;
 
             }
-
+            if (SummonCD > 6&&!IsAttacking&&!Hurt)
+            {
+                States = EnemyStates.Summon;
+                IsAttacking = true;
+                Speed = 0;
+                SummonCD = 0;
+                _count = 0;
+            }
+            if (HealCD > 4 && !IsAttacking && !Hurt)
+            {
+                States = EnemyStates.Heal;
+                IsAttacking = true;
+                Speed = 0;
+                HealCD = 0;
+                _count = 0;
+            }
             //movement
             _velocity.Y += Globals.Gravity;
             //collision
@@ -167,16 +194,6 @@
             foreach (Tile collider in tiles)
             {
                 if (!collider.Visible) continue;
-                if (newPos.X != Position.X)
-                {
-                    newHitbox = ToHitbox(new(newPos.X, Position.Y));
-                    if (newHitbox.Intersects(collider.Rectangle))
-                    {
-                        newPos.X = Position.X;
-
-                        RightDirection = !RightDirection;
-                    }
-                }
                 newHitbox = ToHitbox(new(Position.X, newPos.Y));
                 if (newHitbox.Intersects(collider.Rectangle))
                 {
@@ -189,6 +206,12 @@
                     {
                         newPos.Y = collider.Rectangle.Bottom;
                     }
+                }
+                newHitbox = ToHitbox(new(newPos.X, Position.Y));
+                if (newHitbox.Intersects(collider.Rectangle))
+                {
+                    newPos.X = Position.X;
+                    RightDirection = !RightDirection;
                 }
             }
             foreach (var collider in Platforms)
@@ -212,8 +235,8 @@
             //Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             //Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox, Color.Red);
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, _spriteEffect, 0f);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y-20, Globals.TileSize, 10), Color.Red);
-            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X, (int)Position.Y-20, (int)(Health / MaxHp * Globals.TileSize), 10), Color.Green);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X-(Globals.TileSize - width)/2, (int)Position.Y-20, Globals.TileSize, 10), Color.Red);
+            Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X - (Globals.TileSize - width) / 2, (int)Position.Y-20, (int)(Health / MaxHp * Globals.TileSize), 10), Color.Green);
         }
     }
 }

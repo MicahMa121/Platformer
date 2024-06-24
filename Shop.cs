@@ -17,7 +17,7 @@ namespace Platformer
         public Button refreshBtn;
         private Image imgZ, ImgX;
         public Button ExitBtn = new(new(Globals.WindowSize.X*7/8,Globals.WindowSize.Y/5), " X ");
-
+        public List<Button> BuyButtons = new List<Button>();
         public bool OpenShop { get; set; } = false;
         List<Item> Items = new List<Item>();
         public Shop()
@@ -40,7 +40,7 @@ namespace Platformer
             ShopButtons.Add(hpbtn);
             staminabtn = new(new(stamina.Rectangle.Center.X, stamina.Rectangle.Bottom + height), "Stamina " + strength);
             ShopButtons.Add(staminabtn);
-            refreshBtn = new(new(stamina.Rectangle.Center.X, Globals.WindowSize.X * 3 / 4 -2* height), "Refresh $50");
+            refreshBtn = new(new(stamina.Rectangle.Center.X, Globals.WindowSize.Y * 3 / 4 - height-10), "Refresh $50");
             ShopButtons.Add(refreshBtn);
             skill1btn = new(new(imgZ.Rectangle.Center.X, stamina.Rectangle.Bottom + height), "_skillz");
             ShopButtons.Add(skill1btn);
@@ -73,12 +73,16 @@ namespace Platformer
         public void RefreshShop()
         {
             ShopItems.Clear();
+            BuyButtons.Clear();
             for (int i = 0; i < 5; i++)
             {
                 Item item = Items[_gen.Next(0, Items.Count)];
                 Item clone = new(item._texture, item.Position, item._cost, item._atk, item._maxHp, item._hp, item._sta, item._description, item._skillz, item._skillx);
                 ShopItems.Add(clone);
-                ShopItems[i].Position = new(ItemPosition.X +Globals.WindowSize.X * 3 / 20*(4-i), ItemPosition.Y);
+                Vector2 position = new(ItemPosition.X + Globals.WindowSize.X * 3 / 20 * (4 - i), ItemPosition.Y);
+                ShopItems[i].Position = position;
+                Button button = new(new(position.X,position.Y+Globals.TileSize*3/4 - 5), " Buy ");
+                BuyButtons.Add(button);
             }
         }
         private string _skillz, _skillx;
@@ -99,13 +103,32 @@ namespace Platformer
             ImgX.Texture = Globals.Content.Load<Texture2D>(_skillx);
             if (OpenShop)
             {
-                foreach (var item in ShopButtons)
-                {
-                    item.Update();
-                }
                 foreach (var item in ShopItems)
                 {
                     item.Update();
+                }
+                foreach (var item in BuyButtons)
+                {
+                    item.Update();
+                }
+                bool skip = false;
+                foreach(var item in ShopItems)
+                {
+                    if (item.DescriptionOpen)
+                    {
+                        skip = true;
+                        break;
+                    }
+                }
+                if (!skip)
+                {
+                    for (int i = 0; i < ShopItems.Count; i++)
+                    {
+                        if (BuyButtons[i].ButtonPressed() && !ShopItems[i].IsBought)
+                        {
+                            ShopItems[i].DescriptionOpen = true;
+                        }
+                    }
                 }
             }
         }
@@ -128,14 +151,27 @@ namespace Platformer
                 {
                     item.Draw();
                 }
+                foreach(var item in BuyButtons)
+                {
+                    item.Draw();
+                }
+                ExitBtn.Draw();
+                bool shade = false;
+                var description = ShopItems[0] ;
                 foreach(var item in ShopItems)
                 {
                     if (item.DescriptionOpen)
                     {
                         description = item;
+                        shade = true;
                     }
                 }
-                ExitBtn.Draw();
+                if (shade)
+                {
+                    Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle(0, 0, Globals.WindowSize.X, Globals.WindowSize.Y), new Color(Color.Black, 0.8f));
+                    description.DrawDescription();
+                }
+
             }
         }
 

@@ -45,8 +45,8 @@
             _animationSpeed = 0.1f;
             _velocity.X = -Speed;
             Health = MaxHp;
-            for (int i = 0; i < 4; i++) 
-                Textures[(int)EnemyStates.Hurt].Insert(0, Textures[(int)EnemyStates.Hurt][1]);
+            /*for (int i = 0; i < 4; i++) 
+                Textures[(int)EnemyStates.Hurt].Insert(0, Textures[(int)EnemyStates.Hurt][1]);*/
         }
         public static List<List<Texture2D>> SpriteSheet(Texture2D spritesheet, int w, int h)
         {

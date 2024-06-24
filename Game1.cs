@@ -75,7 +75,7 @@ namespace Platformer
          Globals.Content.Load<Texture2D>("maincharacter"),
          new(300,300));
             userInterface = new UserInterface();
-            this.Window.Title = "Find The Hidden Treasure";
+            this.Window.Title = "Hold \'H\' and \'M\' To Receive Extra Currency";
             map = new();
             map.UserInterface = userInterface;
             map.Player = player;
