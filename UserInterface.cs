@@ -27,7 +27,7 @@ namespace Platformer
         public bool EditOpen = false;
         private Button _left;
         private Button _right;
-        public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder,Background,Spike;
+        public Image Soil, Enemy, Treasure,Portal,Scorpion,Platform,Ladder,Background,Spike,Kitsune;
         public List<Image> Images = new List<Image>();
         public float atk = 5, hp = 100, maxhp = 100, stamina = 100,money = 0;
         public string skillz = "Locked", skillx = "Locked";
@@ -58,7 +58,7 @@ namespace Platformer
         {
             Images.Clear();
             int side = Globals.TileSize;
-            Soil = new(Globals.Content.Load<Texture2D>("grass_block"), Rectangle(side, side, new Vector2(Origin.X - 150, 570)), SpriteEffects.None);
+            Soil = new(Globals.Content.Load<Texture2D>("grass_block (1)"), Rectangle(side, side, new Vector2(Origin.X - 150, 570)), SpriteEffects.None);
             Enemy = new(Globals.Content.Load<Texture2D>("Dog1"), Rectangle(side, side, new Vector2(Origin.X - 50, 570)), SpriteEffects.None);
             Treasure = new(Globals.Content.Load<Texture2D>("treasure"), Rectangle(side, side, new Vector2(Origin.X + 50, 570)), SpriteEffects.None);
             Portal = new(Globals.Content.Load<Texture2D>("portal"), Rectangle(side, side, new Vector2(Origin.X + 150, 570)), SpriteEffects.None);

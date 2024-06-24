@@ -64,6 +64,7 @@ namespace Platformer
         private int tileSize = Globals.TileSize;
         public List<Enemy> Enemies = new List<Enemy>();
         public List<Scorpion> Scorpions = new List<Scorpion>();
+        public List<Kitsune> Kitsunes = new List<Kitsune>();
         public UserInterface UserInterface { get; set; } = new UserInterface();
         public bool Clickable()
         {
@@ -122,6 +123,12 @@ namespace Platformer
             Ladders.Clear();
             Backgrounds.Clear();
             Spikes.Clear();
+            Kitsunes.Clear();
+
+            if (Player!= null)
+            {
+                Player.Position = new Vector2(Globals.WindowSize.X / 2, Globals.WindowSize.Y / 2);
+            }
 
             ShopBtn = new Button(new(500, 600), "$ " + Money);
             int[,] map = Map2D();
@@ -211,6 +218,15 @@ namespace Platformer
         public Tutorial tuto { get; set; }
         public void Update(Vector2 displacement)
         {
+            foreach (var item in Kitsunes)
+            {
+                item.Update(displacement,Tiles,Platforms,Player);
+            }
+            if (InputManager.IsKeyClicked(Keys.C))
+            {
+                Kitsune kitsune = new(new(320, 320));
+                Kitsunes.Add(kitsune);
+            }
             foreach(var item in Backgrounds)
             {
                 item.UpdatePosition(displacement);
@@ -990,6 +1006,10 @@ namespace Platformer
             foreach (var scorpion in Scorpions)
             {
                 scorpion.Draw();
+            }
+            foreach(var item in Kitsunes)
+            {
+                item.Draw();
             }
             foreach (Treasure treasure in Treasures)
             {
