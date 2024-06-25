@@ -47,7 +47,18 @@ namespace Platformer
             {
                 for (int j = 0; j < 102; j++)
                 {
-                    int data = Convert.ToInt32(((char)reader.Read()).ToString());
+                    var test = ((char)reader.Read()).ToString();
+
+                    int data;
+                    bool success = int.TryParse(test, out data);// Convert.ToInt32(((char)reader.Read()).ToString());
+                    if (!success)
+                    {
+                        if (test == "a")
+                        {
+                            data = 10;
+                        }
+                        Debug.WriteLine(test);
+                    }
                     level[i, j] = data;
                 }
                 reader.ReadLine();
@@ -185,6 +196,11 @@ namespace Platformer
                     {
                         Image item = new(Globals.Content.Load<Texture2D>("spikes"), new((int)MaptoScreen(x, y).X, (int)MaptoScreen(x, y).Y, Globals.TileSize, Globals.TileSize), SpriteEffects.None);
                         Spikes.Add(item);
+                    }
+                    if (map[x, y] == 10)
+                    {
+                        Kitsune item = new(new((int)MaptoScreen(x, y).X, (int)MaptoScreen(x, y).Y));
+                        Kitsunes.Add(item);
                     }
                 }
             }
@@ -551,6 +567,7 @@ namespace Platformer
                     }
                 }
                 enemy.Update(displacement, Tiles, Platforms);
+
                 if (enemy.Poisoned > 0)
                 {
                     enemy.PoisonedSpeed += Globals.Time;
@@ -567,8 +584,16 @@ namespace Platformer
                         enemy.PoisonedSpeed = 0;
                     }
                 }
+                enemy.SpawnCD += Globals.Time;
+                if (enemy.SpawnCD > 1 && enemy.Summons > 0)
+                {
+                    enemy.Summons -= 1;
+                    enemy.SpawnCD = 0;
+                    Enemy item = new(Globals.Content.Load<Texture2D>("Dog (2)"), enemy.Position );
+                    Enemies.Add(item);
+                }
                 enemy.HealImg.Timer += Globals.Time;
-                if (enemy.HealImg.Timer>= 1)
+                if (enemy.HealImg.Timer>= 1&&enemy.Healing)
                 {
                     enemy.HealImg.Timer = 0;
                     foreach (var item in Enemies)

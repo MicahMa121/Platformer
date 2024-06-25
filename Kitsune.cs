@@ -43,7 +43,9 @@ namespace Platformer
         public Rectangle Hitbox { get; set; }
         public float SummonCD = 0;
         public float HealCD = 0;
+        public float SpawnCD = 0;
         public bool Healing = false;
+        public int Summons = 0;
         public Rectangle ToHitbox(Vector2 pos)
         {
             int x = width / 4;
@@ -179,6 +181,7 @@ namespace Platformer
                 Speed = 0;
                 SummonCD = 0;
                 _count = 0;
+                Summons += 1; 
             }
             if (HealCD > 4 && !IsAttacking && !Hurt)
             {
