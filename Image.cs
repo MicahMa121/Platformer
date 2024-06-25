@@ -9,10 +9,11 @@ namespace Platformer
         private Vector2 _position;
         public Vector2 Position { get { return _position; } set { _position = value; } }
         private Rectangle _rect;
-        public Rectangle Rectangle {  get { return _rect; } }
+        public Rectangle Rectangle {  get { return _rect; } set { _rect = value; } }
         public int X { get { return _rect.X; } set { _rect.X = value; _position.X = value; } }
-        public float Opacity { get; private set; }
+        public float Opacity { get; set; }
         private SpriteEffects _spriteEffects;
+        public float Timer = 0;
         public Image(Texture2D texture, Rectangle rect, SpriteEffects spriteEffects)
         {
             _texture = texture;

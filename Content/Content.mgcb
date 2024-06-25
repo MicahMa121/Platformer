@@ -349,6 +349,18 @@
 /processorParam:TextureFormat=Color
 /build:grass_block (1).webp
 
+#begin healing.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:healing.png
+
 #begin heart.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -385,7 +397,7 @@
 /processorParam:TextureFormat=Color
 /build:Keys.png
 
-#begin kitsune_spritesheet.png
+#begin kitsune_sprite.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -395,19 +407,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:kitsune_spritesheet.png
-
-#begin Kitsune-v2-sprite-sheet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Kitsune-v2-sprite-sheet.png
+/build:kitsune_sprite.png
 
 #begin Kitsune.png
 /importer:TextureImporter

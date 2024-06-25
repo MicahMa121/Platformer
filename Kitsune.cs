@@ -12,7 +12,7 @@ namespace Platformer
         public Color Color { get; set; } = Color.White;
         public int Poisoned { get; set; } = 0;
         public float PoisonedSpeed { get; set; } = 0;
-        public float Atk { get; set; } = 5f * Globals.Level;
+        public float Atk { get; set; } = 5*Globals.Level;
 
         public float Def { get; set; }
 
@@ -43,14 +43,16 @@ namespace Platformer
         public Rectangle Hitbox { get; set; }
         public float SummonCD = 0;
         public float HealCD = 0;
+        public bool Healing = false;
         public Rectangle ToHitbox(Vector2 pos)
         {
             int x = width / 4;
             return new((int)pos.X+x , (int)pos.Y , width/2, height);
         }
+        public Image HealImg = new Image(Globals.Content.Load<Texture2D>("healing"), new(0,0,180,180), SpriteEffects.None);
         public Kitsune(Vector2 position)
         {
-            Textures = SpriteSheet(Globals.Content.Load<Texture2D>("kitsune-v2-sprite-sheet"),4,5);
+            Textures = SpriteSheet(Globals.Content.Load<Texture2D>("kitsune_sprite"),4,5);
             _spriteEffect = SpriteEffects.None;
             Position = position;
             States = EnemyStates.Walk;
@@ -97,7 +99,7 @@ namespace Platformer
             Position += displacement;
             Hitbox = ToHitbox(Position);
             SummonCD += Globals.Time;
-            //HealCD += Globals.Time;
+            HealCD += Globals.Time;
             if (Health <= 0 && !Dying)
             {
                 Dying = true;
@@ -170,7 +172,7 @@ namespace Platformer
                 _time = 0;
 
             }
-            if (SummonCD > 6&&!IsAttacking&&!Hurt)
+            if (SummonCD > 10&&!IsAttacking&&!Hurt)
             {
                 States = EnemyStates.Summon;
                 IsAttacking = true;
@@ -185,6 +187,18 @@ namespace Platformer
                 Speed = 0;
                 HealCD = 0;
                 _count = 0;
+                HealImg.Opacity = 1;
+                Healing = true;
+            }
+            HealImg.Position = Position + new Vector2(32-90 + 5,32-90);
+            HealImg.UpdatePosition(Vector2.Zero);
+            if (Healing)
+            {
+                HealImg.Opacity -= 0.005f;
+                if (HealImg.Opacity < 0)
+                {
+                    Healing = false;
+                }
             }
             //movement
             _velocity.Y += Globals.Gravity;
@@ -234,6 +248,10 @@ namespace Platformer
         {
             //Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), AttackRange(), Color.Blue);
             //Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), Hitbox, Color.Red);
+            if (Healing)
+            {
+                HealImg.Draw();
+            }
             Globals.SpriteBatch.Draw(Texture, Position, null, Color, Rotation, Origin, 1f, _spriteEffect, 0f);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X-(Globals.TileSize - width)/2, (int)Position.Y-20, Globals.TileSize, 10), Color.Red);
             Globals.SpriteBatch.Draw(Globals.Content.Load<Texture2D>("rectangle"), new Rectangle((int)Position.X - (Globals.TileSize - width) / 2, (int)Position.Y-20, (int)(Health / MaxHp * Globals.TileSize), 10), Color.Green);

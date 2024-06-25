@@ -566,7 +566,38 @@ namespace Platformer
                         }
                         enemy.PoisonedSpeed = 0;
                     }
-
+                }
+                enemy.HealImg.Timer += Globals.Time;
+                if (enemy.HealImg.Timer>= 1)
+                {
+                    enemy.HealImg.Timer = 0;
+                    foreach (var item in Enemies)
+                    {
+                        if (item.Hitbox.Intersects(enemy.HealImg.Rectangle) && item.Health < item.MaxHp)
+                        {
+                            item.Health += (int)(enemy.Atk);
+                            DamageText text = new(Convert.ToString((int)(enemy.Atk)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Green);
+                            DamageTexts.Add(text);
+                        }
+                    }
+                    foreach (var item in Scorpions)
+                    {
+                        if (item.Hitbox(item.Position).Intersects(enemy.HealImg.Rectangle) && item.Health < item.MaxHp)
+                        {
+                            item.Health += (int)(enemy.Atk);
+                            DamageText text = new(Convert.ToString((int)(enemy.Atk)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Green);
+                            DamageTexts.Add(text);
+                        }
+                    }
+                    foreach (var item in Kitsunes)
+                    {
+                        if (item.Hitbox.Intersects(enemy.HealImg.Rectangle) && item.Health < item.MaxHp)
+                        {
+                            item.Health += (int)(enemy.Atk);
+                            DamageText text = new(Convert.ToString((int)(enemy.Atk)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Green);
+                            DamageTexts.Add(text);
+                        }
+                    }
                 }
             }
             for (int i = 0; i < Scorpions.Count; i++)
