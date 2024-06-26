@@ -174,7 +174,7 @@ namespace Platformer
                 _time = 0;
 
             }
-            if (SummonCD > 10&&!IsAttacking&&!Hurt)
+            if (SummonCD > 15&&!IsAttacking&&!Hurt)
             {
                 States = EnemyStates.Summon;
                 IsAttacking = true;

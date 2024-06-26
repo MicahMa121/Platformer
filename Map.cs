@@ -137,6 +137,7 @@ namespace Platformer
             if (Player!= null)
             {
                 Player.Position = new Vector2(Globals.WindowSize.X / 2, Globals.WindowSize.Y / 2);
+                Player.capples.Clear();
             }
 
             ShopBtn = new Button(new(500, 600), "$ " + Money);
