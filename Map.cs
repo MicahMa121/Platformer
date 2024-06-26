@@ -29,7 +29,7 @@ namespace Platformer
                         }
                         else
                         {
-                            writer.Write('1');
+                            writer.Write('0');
                         }
                     }
                     writer.WriteLine();

@@ -670,7 +670,7 @@ namespace Platformer
             //States
             if (!Globals.Pause && !Reviving)
             {
-                if (InputManager.IsKeyPressed(Keys.D))
+                if (InputManager.IsKeyPressed(Keys.D)||InputManager.IsKeyPressed(Keys.Right))
                 {
                     _velocity.X = Speed;
                     if (!Jumped && !Attacking && !Hurt && !Casting&&!SkillAttacking && !IsClimbing)
@@ -682,7 +682,7 @@ namespace Platformer
                     }
                     Idle = false;
                 }
-                else if (InputManager.IsKeyPressed(Keys.A))
+                else if (InputManager.IsKeyPressed(Keys.A)||InputManager.IsKeyPressed(Keys.Left))
                 {
                     _velocity.X = -Speed;
                     if (!Jumped && !Attacking && !Hurt && !Casting && !SkillAttacking&&!IsClimbing)
@@ -705,7 +705,7 @@ namespace Platformer
                         _velocity.X = -Speed;
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.Z) && Stamina >= 25f && SkillZ != "Locked" && !IsClimbing)
+                if ((InputManager.IsKeyClicked(Keys.Z) || InputManager.IsKeyClicked(Keys.J))&& Stamina >= 25f && SkillZ != "Locked" && !IsClimbing)
                 {
                     if (!Casting)
                     {
@@ -718,13 +718,9 @@ namespace Platformer
                         SkillAttacking = false;
                         Jumped = false;
                         Stamina -= 25;
-                        if (SkillZ == "Blubberry")
-                        {
-                            _velocity.Y += -20;
-                        }
                     }
                 }
-                if (InputManager.IsKeyClicked(Keys.X) && Stamina >= 75f && SkillX != "Locked" && !IsClimbing)
+                if ((InputManager.IsKeyClicked(Keys.X)||InputManager.IsKeyClicked(Keys.K)) && Stamina >= 75f && SkillX != "Locked" && !IsClimbing)
                 {
                     if (!Attacking && !SkillAttacking)
                         _count = 0;
@@ -766,7 +762,7 @@ namespace Platformer
                         capples.Add(capple);
                     }
                 }
-                if ((InputManager.IsKeyClicked(Keys.LeftShift)||InputManager.IsKeyClicked(Keys.Q)) && Stamina >= 25f && !Dashing && !IsClimbing)
+                if ((InputManager.IsKeyClicked(Keys.LeftShift)||InputManager.IsKeyClicked(Keys.Q)||InputManager.IsKeyClicked(Keys.RightShift)) && Stamina >= 25f && !Dashing && !IsClimbing)
                 {
                     Dashing = true;
                     Speed = 10;
@@ -791,11 +787,11 @@ namespace Platformer
                 }
                 if (ladder)
                 {
-                    if (InputManager.IsKeyReleased(Keys.W))
+                    if (InputManager.IsKeyReleased(Keys.W)||InputManager.IsKeyReleased(Keys.Up))
                     {
                         _velocity.Y *= 0.4f;
                     }
-                    if (InputManager.IsKeyClicked(Keys.W) && Stamina >= 30f)
+                    if ((InputManager.IsKeyClicked(Keys.W) || InputManager.IsKeyClicked(Keys.Up)) && Stamina >= 30f)
                     {
                         _velocity.Y = -20;
 
@@ -818,7 +814,7 @@ namespace Platformer
                 }
                 else
                 {
-                    if (InputManager.IsKeyPressed(Keys.W))
+                    if (InputManager.IsKeyPressed(Keys.W) || InputManager.IsKeyPressed(Keys.Up))
                     {
                         Position += new Vector2(0,-Speed);
                         States = CharacterStates.Climb;
@@ -827,7 +823,7 @@ namespace Platformer
                         _velocity.Y = 0;
                         Jumped = false;
                     }
-                    else if (InputManager.IsKeyPressed(Keys.S))
+                    else if (InputManager.IsKeyPressed(Keys.S) || InputManager.IsKeyPressed(Keys.Down))
                     {
                         Position += new Vector2(0,Speed);
                         States = CharacterStates.Climb;
