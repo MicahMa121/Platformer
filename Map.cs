@@ -57,7 +57,6 @@ namespace Platformer
                         {
                             data = 10;
                         }
-                        Debug.WriteLine(test);
                     }
                     level[i, j] = data;
                 }
@@ -133,6 +132,7 @@ namespace Platformer
             Backgrounds.Clear();
             Spikes.Clear();
             Kitsunes.Clear();
+            foxies.Clear();
 
             if (Player!= null)
             {
@@ -230,13 +230,9 @@ namespace Platformer
         public Button ShopBtn { get; set; } 
         public Button Restart { get; set; }
         public Tutorial tuto { get; set; }
+        public List<Foxy> foxies { get; set; } = new List<Foxy> ();
         public void Update(Vector2 displacement)
         {
-            if (InputManager.IsKeyClicked(Keys.C))
-            {
-                Kitsune kitsune = new(new(320, 320));
-                Kitsunes.Add(kitsune);
-            }
             foreach(var item in Backgrounds)
             {
                 item.UpdatePosition(displacement);
@@ -434,6 +430,20 @@ namespace Platformer
                         enemy.Speed = 0;
                     }
                 }
+                foreach (var enemy in foxies)
+                {
+                    if (item.Rectangle.Intersects(enemy.Hitbox) && !enemy.Hurt)
+                    {
+                        enemy.Health -= (int)(enemy.MaxHp / 4);
+                        DamageText text = new(Convert.ToString((int)(enemy.MaxHp / 4)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Red);
+                        DamageTexts.Add(text);
+
+                        enemy.Hurt = true;
+                        enemy._count = 0;
+                        enemy.States = Foxy.EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
                 foreach (var enemy in Scorpions)
                 {
                     if (item.Rectangle.Intersects(enemy.Hitbox(enemy.Position)) && !enemy.Hurt)
@@ -589,8 +599,17 @@ namespace Platformer
                 {
                     enemy.Summons -= 1;
                     enemy.SpawnCD = 0;
-                    Enemy item = new(Globals.Content.Load<Texture2D>("Dog (2)"), enemy.Position );
-                    Enemies.Add(item);
+                    Vector2 vector= Vector2.Zero;
+                    if (enemy.RightDirection)
+                    {
+                        vector = new(-1, 0);
+                    }
+                    else
+                    {
+                        vector = new(1, 0);
+                    }
+                    Foxy fox = new((enemy.Position + vector * 40), enemy._spriteEffect);
+                    foxies.Add(fox);
                 }
                 enemy.HealImg.Timer += Globals.Time;
                 if (enemy.HealImg.Timer>= 1&&enemy.Healing)
@@ -632,6 +651,16 @@ namespace Platformer
                     Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(Scorpions[i].Rectangle.Center.X, Scorpions[i].Rectangle.Center.Y), 5 * _gen.Next(1, 5));
                     Coins.Add(coin);
                     Scorpions.RemoveAt(i);
+                    i--;
+                }
+            }
+            for (int i = 0; i < foxies.Count; i++)
+            {
+                if (foxies[i].Died)
+                {
+                    Coin coin = new(Globals.Content.Load<Texture2D>("coin"), new(foxies[i].Rectangle.Center.X, foxies[i].Rectangle.Center.Y), 5 * _gen.Next(1, 2));
+                    Coins.Add(coin);
+                    foxies.RemoveAt(i);
                     i--;
                 }
             }
@@ -765,7 +794,145 @@ namespace Platformer
                 }
                 scorpion.Update(displacement, Tiles, Platforms);
             }
+            foreach (var scorpion in foxies)
+            {
+                scorpion.Update(displacement, Tiles, Platforms);
+                if (scorpion.States == Foxy.EnemyStates.Spawn) continue;
+                if (UserInterface.open || UserInterface.EditOpen || Player.Reviving)
+                {
+                    scorpion.Speed = 0;
+                }
+                else
+                {
+                    foreach (Slash slash in scorpion.Slashes)
+                    {
+                        if (!Player.Dashing && Player.Hitbox(Player.Position).Intersects(slash.Rectangle))
+                        {
+                            slash.Hit = true;
+                            Player.States = Character.CharacterStates.Hurt;
+                            Player.Hurt = true;
+                            Player.Idle = false;
+                            Player.Attacking = false;
+                            Player.Jumped = false;
+                            Player.Casting = false;
+                            Player.Health -= scorpion.Atk;
+                            DamageText text = new(Convert.ToString(scorpion.Atk), new(Player.Hitbox(Player.Position).Center.X, Player.Position.Y), Color.Red);
+                            DamageTexts.Add(text);
+                            Player.Dodge = false;
+                        }
+                        else if (Player.Dashing && Player.Hitbox(Player.Position).Intersects(slash.Rectangle))
+                        {
+                            Player.Dodge = true;
+                            Image image = new(Player.Texture, new Rectangle((int)Player.Position.X, (int)Player.Position.Y, Player.Rectangle.Width, Player.Rectangle.Height), Player.SpriteEffect);
+                            Trails.Add(image);
+                        }
+                    }
+                    if (Player.Attacking && scorpion.Hitbox.Intersects(Player.AttackRange()))
+                    {
+                        if (!scorpion.Hurt)
+                        {
+                            if (scorpion._spriteEffects != Player.SpriteEffect)
+                            {
+                                scorpion.Health -= Player.Atk * 2;
+                                DamageText text = new(Convert.ToString(Player.Atk * 2), new(scorpion.Rectangle.Center.X, scorpion.Position.Y), Color.Yellow);
+                                DamageTexts.Add(text);
+                            }
+                            else
+                            {
+                                scorpion.Health -= Player.Atk;
+                                DamageText text = new(Convert.ToString(Player.Atk), new(scorpion.Rectangle.Center.X, scorpion.Position.Y), Color.Yellow);
+                                DamageTexts.Add(text);
+                            }
 
+                            scorpion.Hurt = true;
+                            scorpion._count = 0;
+                            scorpion.States = Foxy.EnemyStates.Hurt;
+                            scorpion.Speed = 0;
+
+                        }
+                    }
+                    scorpion.FireCD += Globals.Time;
+                    if (!scorpion.IsAttacking)
+                    {
+                        
+                        int x = 0;
+                        int y = 0;
+                        foreach (Tile tile in Tiles)
+                        {
+                            if (tile.Rectangle.Contains(new Rectangle((int)scorpion.Rectangle.Center.X, (int)scorpion.Rectangle.Center.Y, 1, 1)))
+                            {
+                                x = tile.Location.x;
+                                y = tile.Location.y; break;
+                            }
+                        }
+                        bool attack = false;
+                        if (scorpion.RightDirection)
+                        {
+                            for (int i = 1; i < 6; i++)
+                            {
+                                if (x - i < 0) break;
+                                if (Tiles[x - i, y].Visible)
+                                {
+                                    attack = false;
+                                    break;
+                                }
+                                if (Tiles[x - i, y].IsPlayerHere)
+                                {
+                                    attack = true;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 1; i < 6; i++)
+                            {
+                                if (x + i > 102) break;
+                                if (Tiles[x + i, y].Visible)
+                                {
+                                    attack = false;
+                                    break;
+                                }
+                                if (Tiles[x + i, y].IsPlayerHere)
+                                {
+                                    attack = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (attack && scorpion.FireCD > 2)
+                        {
+                            scorpion.FireCD = 0; 
+                            scorpion.IsAttacking = true;
+                            scorpion.States = (Foxy.EnemyStates)EnemyStates.Attack;
+                            scorpion._count = 0;
+                            scorpion.Speed = 0;
+                        }
+                        else if (attack)
+                        {
+                            scorpion.Speed = 1;
+                        }
+                    }
+                    if (scorpion.Poisoned > 0)
+                    {
+                        scorpion.PoisonedSpeed += Globals.Time;
+                        if (scorpion.PoisonedSpeed > 1)
+                        {
+                            scorpion.Poisoned += -1;
+                            scorpion.Health += (int)(-0.1f * Player.Atk);
+                            DamageText text = new(Convert.ToString((int)(0.1f * Player.Atk)), new(scorpion.Rectangle.Center.X, scorpion.Position.Y), Color.Turquoise);
+                            DamageTexts.Add(text);
+                            if (scorpion.Poisoned == 0)
+                            {
+                                scorpion.Color = Color.White;
+                            }
+                            scorpion.PoisonedSpeed = 0;
+                        }
+
+                    }
+                }
+
+            }
             if (UserInterface.MouseState == "soil")
             {
                 for (int j = 0; j < Tiles.GetLength(1); j++)
@@ -1117,11 +1284,11 @@ namespace Platformer
             if (UserInterface.MouseState == "kitsune")
             {
                 bool Add = true;
-                for (int i = 0; i < Spikes.Count; i++)
+                for (int i = 0; i < Kitsunes.Count; i++)
                 {
-                    if (Clickable() && Spikes[i].Rectangle.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
+                    if (Clickable() && Kitsunes[i].Hitbox.Contains(InputManager.MouseRectangle) && InputManager.MouseClicked)
                     {
-                        Spikes.RemoveAt(i);
+                        Kitsunes.RemoveAt(i);
                         i--;
                         Add = false;
                     }
@@ -1198,6 +1365,10 @@ namespace Platformer
             {
                 image.Draw();
             }
+            foreach (var item in Kitsunes)
+            {
+                item.Draw();
+            }
             foreach (Portal portal in Portals)
             {
                 portal.Draw();
@@ -1210,7 +1381,7 @@ namespace Platformer
             {
                 scorpion.Draw();
             }
-            foreach(var item in Kitsunes)
+            foreach (var item in foxies)
             {
                 item.Draw();
             }

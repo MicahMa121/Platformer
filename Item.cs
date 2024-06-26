@@ -16,7 +16,7 @@ namespace Platformer
         public string _description;
         private int _width, _height;
         public bool DescriptionOpen;
-        private Button _buyBtn;
+        public Button _buyBtn;
         public string _skillz, _skillx;
         public bool IsBought { get; set; } = false;
         public bool Sold { get; set; } = false;
@@ -44,12 +44,11 @@ namespace Platformer
         }
         public void Update()
         {
-            if (Sold) return;
             _itemRect = Globals.Rectangle(Globals.TileSize, Globals.TileSize, _position);
             if (DescriptionOpen)
             {
                 _buyBtn.Update();
-                if (_buyBtn.ButtonPressed())
+                if (_buyBtn.ButtonPressed()&&!Sold)
                 {
                     IsBought = true;
                     DescriptionOpen = false;
@@ -83,7 +82,8 @@ namespace Platformer
             Globals.SpriteBatch.Draw(rectTex, Globals.Rectangle(_width, _height, origin), Color.Purple);
             Globals.SpriteBatch.Draw(rectTex, Globals.Rectangle(_width - _height / 10, _height - _height / 10, origin), Color.MediumPurple);
             Globals.SpriteBatch.DrawString(font, _description, TextPosition(origin, _description), Color.White);
-            _buyBtn.Draw();
+            if (!Sold)
+                _buyBtn.Draw();
         }
     }
 }

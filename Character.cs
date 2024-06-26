@@ -320,6 +320,20 @@ namespace Platformer
                                 enemy.Speed = 0;
                             }
                         }
+                        foreach (var enemy in map.foxies)
+                        {
+                            if (enemy.Dying) continue;
+                            if (item.Rectangle.Intersects(enemy.Hitbox))
+                            {
+                                enemy.Health -= Atk * 10;
+                                DamageText text1 = new(Convert.ToString(Atk * 10), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Orange);
+                                map.DamageTexts.Add(text1);
+                                enemy.Hurt = true;
+                                enemy._count = 0;
+                                enemy.States = Foxy.EnemyStates.Hurt;
+                                enemy.Speed = 0;
+                            }
+                        }
                         foreach (var enemy in map.Scorpions)
                         {
                             if (enemy.Dying) continue;
@@ -360,9 +374,9 @@ namespace Platformer
                         }
                         for (int i = 0; i < map.Spikes.Count; i++)
                         {
-                            if (map.Ladders[i].Rectangle.Intersects(item.Rectangle))
+                            if (map.Spikes[i].Rectangle.Intersects(item.Rectangle))
                             {
-                                map.Ladders.RemoveAt(i);
+                                map.Spikes.RemoveAt(i);
                                 i--;
                             }
                         }
@@ -408,6 +422,22 @@ namespace Platformer
                         enemy.Hurt = true;
                         enemy._count = 0;
                         enemy.States = (Kitsune.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                        break;
+                    }
+                }
+                foreach (var enemy in map.foxies)
+                {
+                    if (enemy.Dying) continue;
+                    if (!slash.Hit && slash.Rectangle.Intersects(enemy.Hitbox))
+                    {
+                        slash.Hit = true;
+                        enemy.Health -= Atk * 4;
+                        DamageText text = new(Convert.ToString(map.Player.Atk * 4), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.AliceBlue);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy._count = 0;
+                        enemy.States = Foxy.EnemyStates.Hurt;
                         enemy.Speed = 0;
                         break;
                     }
@@ -467,6 +497,24 @@ namespace Platformer
                         break;
                     }
                 }
+                foreach (var enemy in map.foxies)
+                {
+                    if (enemy.Dying) continue;
+                    if (!slash.Hit && slash.Rectangle.Intersects(enemy.Hitbox))
+                    {
+                        slash.Hit = true;
+                        enemy.Health -= (int)(Atk * 0.5f);
+                        enemy.Poisoned += 5;
+                        enemy.Color = Color.DeepSkyBlue;
+                        DamageText text = new(Convert.ToString((int)(Atk * 0.5f)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.Turquoise);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy._count = 0;
+                        enemy.States = Foxy.EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                        break;
+                    }
+                }
                 foreach (var enemy in map.Scorpions)
                 {
                     if (enemy.Dying) continue;
@@ -519,6 +567,23 @@ namespace Platformer
                         enemy.Hurt = true;
                         enemy._count = 0;
                         enemy.States = (Kitsune.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+                foreach (var enemy in map.foxies)
+                {
+                    if (enemy.Dying) continue;
+                    if (slash.Rectangle.Intersects(enemy.Hitbox) && enemy.States != Foxy.EnemyStates.Hurt)
+                    {
+                        enemy.Health -= (int)(Atk * 1.5f);
+                        Health += (int)(MaxHp * 0.05f);
+                        DamageText text = new(Convert.ToString(Math.Round(Atk * 1.5f)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.DarkRed);
+                        map.DamageTexts.Add(text);
+                        DamageText text1 = new(Convert.ToString(Math.Round(MaxHp * 0.05f)), Position, Color.Green);
+                        map.DamageTexts.Add(text1);
+                        enemy.Hurt = true;
+                        enemy._count = 0;
+                        enemy.States = Foxy.EnemyStates.Hurt;
                         enemy.Speed = 0;
                     }
                 }
@@ -581,6 +646,20 @@ namespace Platformer
                         enemy.Hurt = true;
                         enemy._count = 0;
                         enemy.States = (Kitsune.EnemyStates)EnemyStates.Hurt;
+                        enemy.Speed = 0;
+                    }
+                }
+                foreach (var enemy in map.foxies)
+                {
+                    if (enemy.Dying) continue;
+                    if (slash.Rectangle.Intersects(enemy.Hitbox) && enemy.States != Foxy.EnemyStates.Hurt)
+                    {
+                        enemy.Health -= (int)(MaxHp * 0.05f);
+                        DamageText text = new(Convert.ToString(Math.Round((int)MaxHp * 0.05f)), new(enemy.Hitbox.Center.X, enemy.Position.Y), Color.GreenYellow);
+                        map.DamageTexts.Add(text);
+                        enemy.Hurt = true;
+                        enemy._count = 0;
+                        enemy.States = Foxy.EnemyStates.Hurt;
                         enemy.Speed = 0;
                     }
                 }

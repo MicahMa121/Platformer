@@ -142,6 +142,12 @@ namespace Platformer
                             DamageText pop = new("Not Enough Money!", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Not Enough Money!").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Not Enough Money!").Y), Color.Red);
                             damageTexts.Add(pop);
                         }
+                        if (shop.ShopItems[i].Sold && shop.ShopItems[i]._buyBtn.ButtonPressed())
+                        {
+                            DamageText pop = new("Item Bought", new(Globals.WindowSize.X / 2 - Globals.Font.MeasureString("Item Bought").X, Globals.WindowSize.Y / 2 - Globals.Font.MeasureString("Item Bought").Y), Color.Green);
+                            damageTexts.Add(pop);
+                            shop.BuyButtons[i].Text = " Sold ";
+                        }
                     }
                 }
                 if (shop.refreshBtn.ButtonPressed())

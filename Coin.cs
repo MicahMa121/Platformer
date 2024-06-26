@@ -35,6 +35,11 @@ namespace Platformer
         public void Update(Vector2 displacement, Tile[,] tiles)
         {
             _time += Globals.Time;
+
+            //displacement
+            Position += displacement;
+            //movement
+            _velocity.Y += (float)Globals.Gravity / 4;
             if (Collected)
             {
                 if (_opacity <= 0f)
@@ -50,10 +55,6 @@ namespace Platformer
                 return;
             }
 
-            //displacement
-            Position += displacement;
-            //movement
-            _velocity.Y += (float)Globals.Gravity/4;
             //collision
             Vector2 newPos = Position + _velocity;
             Rectangle newHitbox;

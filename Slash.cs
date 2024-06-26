@@ -6,6 +6,9 @@ namespace Platformer
     public class Slash
     {
         private Texture2D texture;
+        private List<Texture2D> textureList;
+        private float time = 0;
+        private int index = 0;
         private Vector2 position;
         private Vector2 velocity;
         private Rectangle rect;
@@ -24,8 +27,34 @@ namespace Platformer
             width = w;
             height = h;
         }
+        public Slash(Texture2D spritesheet,int x, int y ,Vector2 position, Vector2 velocity, SpriteEffects spriteEffects, int w, int h)
+        {
+            textureList = Globals.SpriteSheet(spritesheet, x, y)[0];
+            texture = textureList[0];
+            this.position = position;
+            this.velocity = velocity;
+            Hit = false;
+            rect = Globals.Rectangle(w, h, position);
+            this.spriteEffects = spriteEffects;
+            width = w;
+            height = h;
+        }
         public void Update(Vector2 displacement,Tile[,] tiles)
         {
+            if (textureList != null)
+            {
+                time += Globals.Time;
+                if (time > 0.1f)
+                {
+                    time = 0;
+                    index++;
+                    if (index>= textureList.Count)
+                    {
+                        index = 0;
+                    }
+                    texture = textureList[index];
+                }
+            }
             position += displacement;
             position += velocity;
             rect = Globals.Rectangle(width,height, position);
